@@ -2,19 +2,25 @@
 // Use of this source code is governed by a Apache
 // license that can be found in the LICENSE file.
 
-syntax = "proto2";
+syntax = "proto3";
 
-package github.com.chai2010.pbgo;
+package pbgo;
 
 option go_package = "github.com/chai2010/pbgo;pbgo";
 
 import "google/protobuf/descriptor.proto";
 
 extend google.protobuf.MethodOptions {
-	optional RestMethodOption rest_method_option = 20180715;
+	RestMethodOption rest_method_option = 20180715;
 }
 
 message RestMethodOption {
-	optional string url = 2;
-	optional string http_method = 1 [default = "GET"];
+	string method = 1;
+	string url = 2;
+
+	string get = 3;
+	string post = 4;
+	string put = 5;
+	string patch = 6;
+	string delete = 7;
 }

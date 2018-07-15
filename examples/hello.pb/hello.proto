@@ -4,7 +4,9 @@
 
 syntax = "proto3";
 
-package hello;
+package hello_pb;
+
+import "github.com/chai2010/pbgo/pbgo.proto";
 
 message String {
 	string value = 1;
@@ -12,6 +14,9 @@ message String {
 
 service HelloService {
 	rpc Hello (String) returns (String) {
-		// TODO
+		option (pbgo.rest_method_option) = {
+			get: "/hello/{value}"
+			post: "/hello"
+		};
 	}
 }
