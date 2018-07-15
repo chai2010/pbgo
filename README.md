@@ -1,4 +1,4 @@
-# pbgo: mini web/rpc framework based on Protobuf
+# pbgo: mini rpc/rest framework based on Protobuf
 
 [![Build Status](https://travis-ci.org/chai2010/pbgo.svg)](https://travis-ci.org/chai2010/pbgo)
 [![Go Report Card](https://goreportcard.com/badge/github.com/chai2010/pbgo)](https://goreportcard.com/report/github.com/chai2010/pbgo)
@@ -66,6 +66,35 @@ func tryRpcClient() {
 func main() {
 	go startRpcServer()
 	tryRpcClient()
+}
+```
+
+
+## Example (rest)
+
+```go
+package main
+
+import (
+	"fmt"
+	"log"
+	"net/http"
+
+	"github.com/julienschmidt/httprouter"
+
+	"github.com/chai2010/pbgo/examples/hello.pb"
+)
+
+type HelloService struct{}
+
+func (p *HelloService) Hello(request *hello_pb.String, reply *hello_pb.String) error {
+	reply.Value = "hello:" + request.GetValue()
+	return nil
+}
+
+func main() {
+	router := hello_pb.HelloServiceHandler(new(HelloService))
+	log.Fatal(http.ListenAndServe(":8080", router))
 }
 ```
 

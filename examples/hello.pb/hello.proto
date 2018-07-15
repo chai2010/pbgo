@@ -15,7 +15,7 @@ message String {
 service HelloService {
 	rpc Hello (String) returns (String) {
 		option (pbgo.rest_method_option) = {
-			get: "/hello/{value}"
+			get: "/hello/:value"
 			post: "/hello"
 		};
 	}
