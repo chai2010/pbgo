@@ -3,6 +3,7 @@ package hello_pb
 import (
 	"encoding/json"
 	"net/http"
+	"regexp"
 
 	"github.com/julienschmidt/httprouter"
 
@@ -12,6 +13,8 @@ import (
 func HelloServiceHandler(svc HelloServiceInterface) http.Handler {
 	router := httprouter.New()
 
+	var re = regexp.MustCompile(`(\*|\:)(\w|\.)+`)
+
 	router.Handle("GET", "/hello/:value",
 		func(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 			var (
@@ -19,7 +22,7 @@ func HelloServiceHandler(svc HelloServiceInterface) http.Handler {
 				protoReply String
 			)
 
-			for _, fieldPath := range []string{"value"} {
+			for _, fieldPath := range re.FindAllString("/hello/:value", -1) {
 				err := pbgo.PopulateFieldFromPath(&protoReq, fieldPath, ps.ByName(fieldPath))
 				if err != nil {
 					http.Error(w, err.Error(), http.StatusBadRequest)
@@ -56,7 +59,7 @@ func HelloServiceHandler(svc HelloServiceInterface) http.Handler {
 				return
 			}
 
-			for _, fieldPath := range []string{"value"} {
+			for _, fieldPath := range re.FindAllString("/hello", -1) {
 				err := pbgo.PopulateFieldFromPath(&protoReq, fieldPath, ps.ByName(fieldPath))
 				if err != nil {
 					http.Error(w, err.Error(), http.StatusBadRequest)
