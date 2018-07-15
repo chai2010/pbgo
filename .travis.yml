@@ -10,5 +10,8 @@ go:
 
 go_import_path: github.com/chai2010/pbgo
 
+before_install:
+- go get github.com/golang/protobuf/...
+
 script:
 - go test ./...
