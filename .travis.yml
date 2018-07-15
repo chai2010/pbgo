@@ -9,3 +9,6 @@ go:
   - "tip"
 
 go_import_path: github.com/chai2010/pbgo
+
+script:
+- go test ./...
