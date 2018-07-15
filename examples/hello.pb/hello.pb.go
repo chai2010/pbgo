@@ -8,6 +8,8 @@ import fmt "fmt"
 import math "math"
 import _ "github.com/chai2010/pbgo"
 
+import "net/rpc"
+
 // Reference imports to suppress errors if they are not otherwise used.
 var _ = proto.Marshal
 var _ = fmt.Errorf
@@ -59,6 +61,35 @@ func (m *String) GetValue() string {
 
 func init() {
 	proto.RegisterType((*String)(nil), "hello_pb.String")
+}
+
+type HelloServiceInterface interface {
+	Hello(in *String, out *String) error
+}
+
+func RegisterHelloService(srv *rpc.Server, x HelloServiceInterface) error {
+	if err := srv.RegisterName("HelloService", x); err != nil {
+		return err
+	}
+	return nil
+}
+
+type HelloServiceClient struct {
+	*rpc.Client
+}
+
+var _ HelloServiceInterface = (*HelloServiceClient)(nil)
+
+func DialHelloService(network, address string) (*HelloServiceClient, error) {
+	c, err := rpc.Dial(network, address)
+	if err != nil {
+		return nil, err
+	}
+	return &HelloServiceClient{Client: c}, nil
+}
+
+func (p *HelloServiceClient) Hello(in *String, out *String) error {
+	return p.Client.Call("HelloService.Hello", in, out)
 }
 
 func init() { proto.RegisterFile("hello.proto", fileDescriptor_hello_acb411caf57e7eca) }
