@@ -9,8 +9,11 @@ import (
 	"log"
 	"text/template"
 
+	"github.com/golang/protobuf/proto"
 	"github.com/golang/protobuf/protoc-gen-go/descriptor"
 	"github.com/golang/protobuf/protoc-gen-go/generator"
+
+	"github.com/chai2010/pbgo"
 )
 
 func init() {
@@ -40,9 +43,10 @@ type ServiceSpec struct {
 }
 
 type ServiceMethodSpec struct {
-	MethodName     string
-	InputTypeName  string
-	OutputTypeName string
+	MethodName       string
+	InputTypeName    string
+	OutputTypeName   string
+	RestMethodOption *pbgo.RestMethodOption
 }
 
 func (p *pbrestPlugin) genImportCode(file *generator.FileDescriptor) {
@@ -69,13 +73,25 @@ func (p *pbrestPlugin) buildServiceSpec(svc *descriptor.ServiceDescriptorProto) 
 
 	for _, m := range svc.Method {
 		spec.MethodList = append(spec.MethodList, ServiceMethodSpec{
-			MethodName:     generator.CamelCase(m.GetName()),
-			InputTypeName:  p.TypeName(p.ObjectNamed(m.GetInputType())),
-			OutputTypeName: p.TypeName(p.ObjectNamed(m.GetOutputType())),
+			MethodName:       generator.CamelCase(m.GetName()),
+			InputTypeName:    p.TypeName(p.ObjectNamed(m.GetInputType())),
+			OutputTypeName:   p.TypeName(p.ObjectNamed(m.GetOutputType())),
+			RestMethodOption: p.getServiceMethodOption(m),
 		})
 	}
 
 	return spec
+}
+
+func (p *pbrestPlugin) getServiceMethodOption(m *descriptor.MethodDescriptorProto) *pbgo.RestMethodOption {
+	if m.Options != nil && proto.HasExtension(m.Options, pbgo.E_RestMethodOption) {
+		if ext, _ := proto.GetExtension(m.Options, pbgo.E_RestMethodOption); ext != nil {
+			if x, _ := ext.(*pbgo.RestMethodOption); x != nil {
+				return x
+			}
+		}
+	}
+	return nil
 }
 
 const tmplService = `
