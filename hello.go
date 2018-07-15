@@ -46,8 +46,7 @@ func tryRpcClient() {
 		log.Fatal(err)
 	}
 
-	var reply hello_pb.String
-	err = client.Hello(&hello_pb.String{Value: "gopher"}, &reply)
+	reply, err := client.Hello(&hello_pb.String{Value: "gopher"})
 	if err != nil {
 		log.Fatal(err)
 	}

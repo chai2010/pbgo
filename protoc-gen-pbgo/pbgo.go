@@ -98,8 +98,6 @@ type {{.ServiceName}}Client struct {
 	*rpc.Client
 }
 
-var _ {{.ServiceName}}Interface = (*{{.ServiceName}}Client)(nil)
-
 func Dial{{.ServiceName}}(network, address string) (*{{.ServiceName}}Client, error) {
 	c, err := rpc.Dial(network, address)
 	if err != nil {
@@ -109,8 +107,12 @@ func Dial{{.ServiceName}}(network, address string) (*{{.ServiceName}}Client, err
 }
 
 {{range $_, $m := .MethodList}}
-func (p *{{$root.ServiceName}}Client) {{$m.MethodName}}(in *{{$m.InputTypeName}}, out *{{$m.OutputTypeName}}) error {
-	return p.Client.Call("{{$root.ServiceName}}.{{$m.MethodName}}", in, out)
+func (p *{{$root.ServiceName}}Client) {{$m.MethodName}}(in *{{$m.InputTypeName}}) (*{{$m.OutputTypeName}}, error) {
+	var out = new({{$m.OutputTypeName}})
+	if err := p.Client.Call("{{$root.ServiceName}}.{{$m.MethodName}}", in, out); err != nil {
+		return nil, err
+	}
+	return out, nil
 }
 {{end}}
 `

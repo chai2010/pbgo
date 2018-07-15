@@ -78,8 +78,6 @@ type HelloServiceClient struct {
 	*rpc.Client
 }
 
-var _ HelloServiceInterface = (*HelloServiceClient)(nil)
-
 func DialHelloService(network, address string) (*HelloServiceClient, error) {
 	c, err := rpc.Dial(network, address)
 	if err != nil {
@@ -88,8 +86,12 @@ func DialHelloService(network, address string) (*HelloServiceClient, error) {
 	return &HelloServiceClient{Client: c}, nil
 }
 
-func (p *HelloServiceClient) Hello(in *String, out *String) error {
-	return p.Client.Call("HelloService.Hello", in, out)
+func (p *HelloServiceClient) Hello(in *String) (*String, error) {
+	var out = new(String)
+	if err := p.Client.Call("HelloService.Hello", in, out); err != nil {
+		return nil, err
+	}
+	return out, nil
 }
 
 func init() { proto.RegisterFile("hello.proto", fileDescriptor_hello_acb411caf57e7eca) }
