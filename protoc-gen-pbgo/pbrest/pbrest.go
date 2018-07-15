@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
-package main
+package pbrest
 
 import (
 	"bytes"
@@ -14,21 +14,21 @@ import (
 )
 
 func init() {
-	generator.RegisterPlugin(new(netrpcPlugin))
+	generator.RegisterPlugin(new(pbrestPlugin))
 }
 
-type netrpcPlugin struct{ *generator.Generator }
+type pbrestPlugin struct{ *generator.Generator }
 
-func (p *netrpcPlugin) Name() string                { return "pbgo" }
-func (p *netrpcPlugin) Init(g *generator.Generator) { p.Generator = g }
+func (p *pbrestPlugin) Name() string                { return "pbrest" }
+func (p *pbrestPlugin) Init(g *generator.Generator) { p.Generator = g }
 
-func (p *netrpcPlugin) GenerateImports(file *generator.FileDescriptor) {
+func (p *pbrestPlugin) GenerateImports(file *generator.FileDescriptor) {
 	if len(file.Service) > 0 {
 		p.genImportCode(file)
 	}
 }
 
-func (p *netrpcPlugin) Generate(file *generator.FileDescriptor) {
+func (p *pbrestPlugin) Generate(file *generator.FileDescriptor) {
 	for _, svc := range file.Service {
 		p.genServiceCode(svc)
 	}
@@ -45,11 +45,11 @@ type ServiceMethodSpec struct {
 	OutputTypeName string
 }
 
-func (p *netrpcPlugin) genImportCode(file *generator.FileDescriptor) {
+func (p *pbrestPlugin) genImportCode(file *generator.FileDescriptor) {
 	p.P(`import "net/rpc"`)
 }
 
-func (p *netrpcPlugin) genServiceCode(svc *descriptor.ServiceDescriptorProto) {
+func (p *pbrestPlugin) genServiceCode(svc *descriptor.ServiceDescriptorProto) {
 	spec := p.buildServiceSpec(svc)
 
 	var buf bytes.Buffer
@@ -62,7 +62,7 @@ func (p *netrpcPlugin) genServiceCode(svc *descriptor.ServiceDescriptorProto) {
 	p.P(buf.String())
 }
 
-func (p *netrpcPlugin) buildServiceSpec(svc *descriptor.ServiceDescriptorProto) *ServiceSpec {
+func (p *pbrestPlugin) buildServiceSpec(svc *descriptor.ServiceDescriptorProto) *ServiceSpec {
 	spec := &ServiceSpec{
 		ServiceName: generator.CamelCase(svc.GetName()),
 	}
