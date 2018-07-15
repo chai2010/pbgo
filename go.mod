@@ -3,3 +3,5 @@
 // license that can be found in the LICENSE file.
 
 module github.com/chai2010/pbgo
+
+require github.com/golang/protobuf v1.1.0

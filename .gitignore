@@ -7,3 +7,6 @@
 *.dll
 
 a.out
+
+# vgo
+go.sum
