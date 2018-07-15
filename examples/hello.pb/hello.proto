@@ -1,0 +1,17 @@
+// Copyright 2018 <chaishushan{AT}gmail.com>. All rights reserved.
+// Use of this source code is governed by a Apache
+// license that can be found in the LICENSE file.
+
+syntax = "proto3";
+
+package hello;
+
+message String {
+	string value = 1;
+}
+
+service HelloService {
+	rpc Hello (String) returns (String) {
+		// TODO
+	}
+}
