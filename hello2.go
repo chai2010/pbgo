@@ -9,6 +9,7 @@ package main
 import (
 	"log"
 	"net/http"
+	"time"
 
 	"github.com/chai2010/pbgo/examples/hello.pb"
 )
@@ -20,7 +21,19 @@ func (p *HelloService) Hello(request *hello_pb.String, reply *hello_pb.String) e
 	return nil
 }
 
+func someMiddleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(wr http.ResponseWriter, r *http.Request) {
+		timeStart := time.Now()
+		defer func() {
+			timeElapsed := time.Since(timeStart)
+			log.Println(r.Method, r.URL, timeElapsed)
+		}()
+
+		next.ServeHTTP(wr, r)
+	})
+}
+
 func main() {
 	router := hello_pb.HelloServiceHandler(new(HelloService))
-	log.Fatal(http.ListenAndServe(":8080", router))
+	log.Fatal(http.ListenAndServe(":8080", someMiddleware(router)))
 }
