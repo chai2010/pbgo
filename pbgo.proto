@@ -11,20 +11,20 @@ option go_package = "github.com/chai2010/pbgo;pbgo";
 import "google/protobuf/descriptor.proto";
 
 extend google.protobuf.MethodOptions {
-	RestMethodOption rest_method_option = 20180715;
+	HttpRule rest_api = 20180715;
 }
 
-message RestMethodOption {
+message HttpRule {
 	string get = 1;
 	string put = 2;
 	string post = 3;
 	string delete = 4;
 	string patch = 5;
 
-	repeated CustomRestRule additional_bindings = 6;
+	repeated CustomHttpRule additional_bindings = 6;
 }
 
-message CustomRestRule {
+message CustomHttpRule {
 	string method = 1;
 	string url = 2;
 }

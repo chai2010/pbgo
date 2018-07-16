@@ -132,7 +132,7 @@ func (p *pbgoPlugin) buildRestMethodSpec(m *descriptor.MethodDescriptorProto) []
 		}
 	}
 
-	for _, v := range []pbgo.CustomRestRule{
+	for _, v := range []pbgo.CustomHttpRule{
 		{Method: "GET", Url: restSpec.Get},
 		{Method: "PUT", Url: restSpec.Put},
 		{Method: "POST", Url: restSpec.Post},
@@ -156,10 +156,10 @@ func (p *pbgoPlugin) buildRestMethodSpec(m *descriptor.MethodDescriptorProto) []
 	return restapis
 }
 
-func (p *pbgoPlugin) getServiceMethodOption(m *descriptor.MethodDescriptorProto) *pbgo.RestMethodOption {
-	if m.Options != nil && proto.HasExtension(m.Options, pbgo.E_RestMethodOption) {
-		if ext, _ := proto.GetExtension(m.Options, pbgo.E_RestMethodOption); ext != nil {
-			if x, _ := ext.(*pbgo.RestMethodOption); x != nil {
+func (p *pbgoPlugin) getServiceMethodOption(m *descriptor.MethodDescriptorProto) *pbgo.HttpRule {
+	if m.Options != nil && proto.HasExtension(m.Options, pbgo.E_RestApi) {
+		if ext, _ := proto.GetExtension(m.Options, pbgo.E_RestApi); ext != nil {
+			if x, _ := ext.(*pbgo.HttpRule); x != nil {
 				return x
 			}
 		}

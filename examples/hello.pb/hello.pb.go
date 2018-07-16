@@ -39,7 +39,7 @@ func (m *String) Reset()         { *m = String{} }
 func (m *String) String() string { return proto.CompactTextString(m) }
 func (*String) ProtoMessage()    {}
 func (*String) Descriptor() ([]byte, []int) {
-	return fileDescriptor_hello_5b3b7eb8ebc2f8fa, []int{0}
+	return fileDescriptor_hello_5097d36818f92c4a, []int{0}
 }
 func (m *String) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_String.Unmarshal(m, b)
@@ -80,7 +80,7 @@ func (m *Message) Reset()         { *m = Message{} }
 func (m *Message) String() string { return proto.CompactTextString(m) }
 func (*Message) ProtoMessage()    {}
 func (*Message) Descriptor() ([]byte, []int) {
-	return fileDescriptor_hello_5b3b7eb8ebc2f8fa, []int{1}
+	return fileDescriptor_hello_5097d36818f92c4a, []int{1}
 }
 func (m *Message) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_Message.Unmarshal(m, b)
@@ -386,9 +386,9 @@ func HelloServiceHandler(svc HelloServiceInterface) http.Handler {
 	return router
 }
 
-func init() { proto.RegisterFile("hello.proto", fileDescriptor_hello_5b3b7eb8ebc2f8fa) }
+func init() { proto.RegisterFile("hello.proto", fileDescriptor_hello_5097d36818f92c4a) }
 
-var fileDescriptor_hello_5b3b7eb8ebc2f8fa = []byte{
+var fileDescriptor_hello_5097d36818f92c4a = []byte{
 	// 329 bytes of a gzipped FileDescriptorProto
 	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x6c, 0x51, 0xd1, 0x4a, 0xf3, 0x30,
 	0x18, 0xa5, 0xeb, 0xda, 0x7f, 0xfb, 0xf6, 0x8b, 0x33, 0x28, 0x96, 0x2a, 0x52, 0xea, 0x4d, 0x2f,

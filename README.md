@@ -123,7 +123,7 @@ message Message {
 
 service HelloService {
 	rpc Hello (String) returns (String) {
-		option (pbgo.rest_method_option) = {
+		option (pbgo.rest_api) = {
 			get: "/hello/:value"
 			post: "/hello"
 
@@ -136,7 +136,7 @@ service HelloService {
 		};
 	}
 	rpc Echo (Message) returns (Message) {
-		option (pbgo.rest_method_option) = {
+		option (pbgo.rest_api) = {
 			get: "/echo/:subfiled.value"
 		};
 	}
