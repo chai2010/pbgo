@@ -30,6 +30,7 @@ func HelloServiceHandler(svc HelloServiceInterface) http.Handler {
 			}
 
 			for _, fieldPath := range re.FindAllString("/hello/:value", -1) {
+				fieldPath := strings.TrimLeft(fieldPath, ":*")
 				err := pbgo.PopulateFieldFromPath(&protoReq, fieldPath, ps.ByName(fieldPath))
 				if err != nil {
 					http.Error(w, err.Error(), http.StatusBadRequest)
@@ -73,6 +74,7 @@ func HelloServiceHandler(svc HelloServiceInterface) http.Handler {
 			}
 
 			for _, fieldPath := range re.FindAllString("/hello", -1) {
+				fieldPath := strings.TrimLeft(fieldPath, ":*")
 				err := pbgo.PopulateFieldFromPath(&protoReq, fieldPath, ps.ByName(fieldPath))
 				if err != nil {
 					http.Error(w, err.Error(), http.StatusBadRequest)
