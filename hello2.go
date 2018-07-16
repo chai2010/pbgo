@@ -21,6 +21,11 @@ func (p *HelloService) Hello(request *hello_pb.String, reply *hello_pb.String) e
 	return nil
 }
 
+func (p *HelloService) Echo(request *hello_pb.Message, reply *hello_pb.Message) error {
+	*reply = *request
+	return nil
+}
+
 func someMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(wr http.ResponseWriter, r *http.Request) {
 		timeStart := time.Now()

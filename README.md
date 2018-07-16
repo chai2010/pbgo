@@ -6,11 +6,35 @@
 
 ## Install
 
+1. install `protoc` at first: http://github.com/google/protobuf/releases
 1. `go get github.com/chai2010/pbgo`
 1. `go get github.com/chai2010/pbgo/protoc-gen-pbgo`
 1. `go run hello.go`
 
 ## Example (net/rpc)
+
+create proto file:
+
+```protobuf
+syntax = "proto3";
+package hello_pb;
+
+message String {
+	string value = 1;
+}
+
+service HelloService {
+	rpc Hello (String) returns (String);
+}
+```
+
+generate rpc code:
+
+```
+$ protoc -I=. -I=$(GOPATH)/src --pbgo_out=. hello.proto
+```
+
+use generate code:
 
 ```go
 package main
@@ -72,6 +96,54 @@ func main() {
 
 ## Example (rest api)
 
+
+create proto file:
+
+```protobuf
+syntax = "proto3";
+package hello_pb;
+
+message String {
+	string value = 1;
+}
+
+message Message {
+	string value = 1;
+	repeated int32 array = 2;
+	map<string,string> dict = 3;
+	String subfiled = 4;
+}
+
+service HelloService {
+	rpc Hello (String) returns (String) {
+		option (pbgo.rest_method_option) = {
+			get: "/hello/:value"
+			post: "/hello"
+
+			additional_bindings {
+				method: "DELETE"; url: "/hello"
+			}
+			additional_bindings {
+				method: "PATCH"; url: "/hello"
+			}
+		};
+	}
+	rpc Echo (Message) returns (Message) {
+		option (pbgo.rest_method_option) = {
+			get: "/echo/:subfiled.value"
+		};
+	}
+}
+```
+
+generate rpc/rest code:
+
+```
+$ protoc -I=. -I=$(GOPATH)/src --pbgo_out=. hello.proto
+```
+
+use generate code:
+
 ```go
 package main
 
@@ -89,6 +161,10 @@ type HelloService struct{}
 
 func (p *HelloService) Hello(request *hello_pb.String, reply *hello_pb.String) error {
 	reply.Value = "hello:" + request.GetValue()
+	return nil
+}
+func (p *HelloService) Echo(request *hello_pb.Message, reply *hello_pb.Message) error {
+	*reply = *request
 	return nil
 }
 
@@ -112,7 +188,16 @@ func main() {
 
 ```
 $ curl localhost:8080/hello/gopher
+{"value":"hello:gopher"}
 $ curl localhost:8080/hello/gopher?value=vgo
+{"value":"hello:vgo"}
+
+$ curl localhost:8080/echo/gopher
+{"subfiled":{"value":"gopher"}}
+$ curl "localhost:8080/echo/gopher?array=123&array=456"
+{"array":[123,456],"subfiled":{"value":"gopher"}}
+$ curl "localhost:8080/echo/gopher?dict%5Babc%5D=123"
+{"dict":{"abc":"123"},"subfiled":{"value":"gopher"}}
 ```
 
 ## BUGS

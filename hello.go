@@ -21,6 +21,10 @@ func (p *HelloService) Hello(request *hello_pb.String, reply *hello_pb.String) e
 	reply.Value = "hello:" + request.GetValue()
 	return nil
 }
+func (p *HelloService) Echo(request *hello_pb.Message, reply *hello_pb.Message) error {
+	*reply = *request
+	return nil
+}
 
 func startRpcServer() {
 	hello_pb.RegisterHelloService(rpc.DefaultServer, new(HelloService))
