@@ -216,8 +216,8 @@ func {{.ServiceName}}Handler(svc {{.ServiceName}}Interface) http.Handler {
 			router.Handle("{{$rest.Method}}", "{{$rest.Url}}",
 				func(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 					var (
-						protoReq   String
-						protoReply String
+						protoReq   {{$m.InputTypeName}}
+						protoReply {{$m.OutputTypeName}}
 					)
 
 					if strings.Contains(r.Header.Get("Accept"), "application/json") {

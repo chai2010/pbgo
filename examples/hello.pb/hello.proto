@@ -12,6 +12,13 @@ message String {
 	string value = 1;
 }
 
+message Message {
+	string value = 1;
+	repeated int32 array = 2;
+	map<string,string> dict = 3;
+	String subfiled = 4;
+}
+
 service HelloService {
 	rpc Hello (String) returns (String) {
 		option (pbgo.rest_method_option) = {
@@ -24,6 +31,11 @@ service HelloService {
 			additional_bindings {
 				method: "PATCH"; url: "/hello"
 			}
+		};
+	}
+	rpc Echo (Message) returns (Message) {
+		option (pbgo.rest_method_option) = {
+			get: "/echo/:subfiled.value"
 		};
 	}
 }
