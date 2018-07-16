@@ -257,24 +257,3 @@ func {{.ServiceName}}Handler(svc {{.ServiceName}}Interface) http.Handler {
 	return router
 }
 `
-
-/*
-
-type ServiceSpec struct {
-	ServiceName string
-	MethodList  []ServiceMethodSpec
-}
-
-type ServiceMethodSpec struct {
-	MethodName     string
-	InputTypeName  string
-	OutputTypeName string
-	RestAPIs       []ServiceRestMethodSpec
-}
-
-
-type ServiceRestMethodSpec struct {
-	Method string
-	Url    string
-}
-*/
