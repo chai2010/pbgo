@@ -15,13 +15,14 @@ message String {
 service HelloService {
 	rpc Hello (String) returns (String) {
 		option (pbgo.rest_method_option) = {
-			method: "GET"; url: "/hello/:value"
+			get: "/hello/:value"
+			post: "/hello"
 
 			additional_bindings {
-				method: "POST"; url: "/hello"
+				method: "DELETE"; url: "/hello"
 			}
 			additional_bindings {
-				method: "DELETE"; url: "/hello"
+				method: "PATCH"; url: "/hello"
 			}
 		};
 	}

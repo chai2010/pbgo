@@ -15,8 +15,16 @@ extend google.protobuf.MethodOptions {
 }
 
 message RestMethodOption {
+	string get = 1;
+	string put = 2;
+	string post = 3;
+	string delete = 4;
+	string patch = 5;
+
+	repeated CustomRestRule additional_bindings = 6;
+}
+
+message CustomRestRule {
 	string method = 1;
 	string url = 2;
-
-	repeated RestMethodOption additional_bindings = 3;
 }
