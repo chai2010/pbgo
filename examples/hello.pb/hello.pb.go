@@ -8,7 +8,14 @@ import fmt "fmt"
 import math "math"
 import _ "github.com/chai2010/pbgo"
 
+import "encoding/json"
 import "net/rpc"
+import "net/http"
+import "regexp"
+import "strings"
+
+import "github.com/chai2010/pbgo"
+import "github.com/julienschmidt/httprouter"
 
 // Reference imports to suppress errors if they are not otherwise used.
 var _ = proto.Marshal
@@ -63,6 +70,14 @@ func init() {
 	proto.RegisterType((*String)(nil), "hello_pb.String")
 }
 
+// Reference imports to suppress errors if they are not otherwise used.
+var _ = json.Marshal
+var _ = http.ListenAndServe
+var _ = regexp.Match
+var _ = strings.Split
+var _ = pbgo.PopulateFieldFromPath
+var _ = httprouter.New
+
 type HelloServiceInterface interface {
 	Hello(in *String, out *String) error
 }
@@ -92,6 +107,171 @@ func (p *HelloServiceClient) Hello(in *String) (*String, error) {
 		return nil, err
 	}
 	return out, nil
+}
+
+func HelloServiceHandler(svc HelloServiceInterface) http.Handler {
+	var router = httprouter.New()
+
+	var re = regexp.MustCompile("(\\*|\\:)(\\w|\\.)+")
+	_ = re
+
+	router.Handle("DELETE", "/hello",
+		func(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+			var (
+				protoReq   String
+				protoReply String
+			)
+
+			if strings.Contains(r.Header.Get("Accept"), "application/json") {
+				w.Header().Set("Content-Type", "application/json")
+			} else {
+				w.Header().Set("Content-Type", "text/plain")
+			}
+
+			for _, fieldPath := range re.FindAllString("/hello", -1) {
+				fieldPath := strings.TrimLeft(fieldPath, ":*")
+				err := pbgo.PopulateFieldFromPath(&protoReq, fieldPath, ps.ByName(fieldPath))
+				if err != nil {
+					http.Error(w, err.Error(), http.StatusBadRequest)
+					return
+				}
+			}
+
+			if err := pbgo.PopulateQueryParameters(&protoReq, r.URL.Query()); err != nil {
+				http.Error(w, err.Error(), http.StatusBadRequest)
+				return
+			}
+
+			if err := svc.Hello(&protoReq, &protoReply); err != nil {
+				http.Error(w, err.Error(), http.StatusInternalServerError)
+				return
+			}
+
+			if err := json.NewEncoder(w).Encode(&protoReply); err != nil {
+				http.Error(w, err.Error(), http.StatusInternalServerError)
+				return
+			}
+		},
+	)
+
+	router.Handle("GET", "/hello/:value",
+		func(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+			var (
+				protoReq   String
+				protoReply String
+			)
+
+			if strings.Contains(r.Header.Get("Accept"), "application/json") {
+				w.Header().Set("Content-Type", "application/json")
+			} else {
+				w.Header().Set("Content-Type", "text/plain")
+			}
+
+			for _, fieldPath := range re.FindAllString("/hello/:value", -1) {
+				fieldPath := strings.TrimLeft(fieldPath, ":*")
+				err := pbgo.PopulateFieldFromPath(&protoReq, fieldPath, ps.ByName(fieldPath))
+				if err != nil {
+					http.Error(w, err.Error(), http.StatusBadRequest)
+					return
+				}
+			}
+
+			if err := pbgo.PopulateQueryParameters(&protoReq, r.URL.Query()); err != nil {
+				http.Error(w, err.Error(), http.StatusBadRequest)
+				return
+			}
+
+			if err := svc.Hello(&protoReq, &protoReply); err != nil {
+				http.Error(w, err.Error(), http.StatusInternalServerError)
+				return
+			}
+
+			if err := json.NewEncoder(w).Encode(&protoReply); err != nil {
+				http.Error(w, err.Error(), http.StatusInternalServerError)
+				return
+			}
+		},
+	)
+
+	router.Handle("PATCH", "/hello",
+		func(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+			var (
+				protoReq   String
+				protoReply String
+			)
+
+			if strings.Contains(r.Header.Get("Accept"), "application/json") {
+				w.Header().Set("Content-Type", "application/json")
+			} else {
+				w.Header().Set("Content-Type", "text/plain")
+			}
+
+			for _, fieldPath := range re.FindAllString("/hello", -1) {
+				fieldPath := strings.TrimLeft(fieldPath, ":*")
+				err := pbgo.PopulateFieldFromPath(&protoReq, fieldPath, ps.ByName(fieldPath))
+				if err != nil {
+					http.Error(w, err.Error(), http.StatusBadRequest)
+					return
+				}
+			}
+
+			if err := pbgo.PopulateQueryParameters(&protoReq, r.URL.Query()); err != nil {
+				http.Error(w, err.Error(), http.StatusBadRequest)
+				return
+			}
+
+			if err := svc.Hello(&protoReq, &protoReply); err != nil {
+				http.Error(w, err.Error(), http.StatusInternalServerError)
+				return
+			}
+
+			if err := json.NewEncoder(w).Encode(&protoReply); err != nil {
+				http.Error(w, err.Error(), http.StatusInternalServerError)
+				return
+			}
+		},
+	)
+
+	router.Handle("POST", "/hello",
+		func(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+			var (
+				protoReq   String
+				protoReply String
+			)
+
+			if strings.Contains(r.Header.Get("Accept"), "application/json") {
+				w.Header().Set("Content-Type", "application/json")
+			} else {
+				w.Header().Set("Content-Type", "text/plain")
+			}
+
+			for _, fieldPath := range re.FindAllString("/hello", -1) {
+				fieldPath := strings.TrimLeft(fieldPath, ":*")
+				err := pbgo.PopulateFieldFromPath(&protoReq, fieldPath, ps.ByName(fieldPath))
+				if err != nil {
+					http.Error(w, err.Error(), http.StatusBadRequest)
+					return
+				}
+			}
+
+			if err := pbgo.PopulateQueryParameters(&protoReq, r.URL.Query()); err != nil {
+				http.Error(w, err.Error(), http.StatusBadRequest)
+				return
+			}
+
+			if err := svc.Hello(&protoReq, &protoReply); err != nil {
+				http.Error(w, err.Error(), http.StatusInternalServerError)
+				return
+			}
+
+			if err := json.NewEncoder(w).Encode(&protoReply); err != nil {
+				http.Error(w, err.Error(), http.StatusInternalServerError)
+				return
+			}
+		},
+	)
+
+	return router
 }
 
 func init() { proto.RegisterFile("hello.proto", fileDescriptor_hello_b41d9786d444a50f) }

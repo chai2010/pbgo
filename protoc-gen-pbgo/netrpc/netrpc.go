@@ -7,10 +7,14 @@ package netrpc
 import (
 	"bytes"
 	"log"
+	"sort"
 	"text/template"
 
+	"github.com/golang/protobuf/proto"
 	"github.com/golang/protobuf/protoc-gen-go/descriptor"
 	"github.com/golang/protobuf/protoc-gen-go/generator"
+
+	"github.com/chai2010/pbgo"
 )
 
 func init() {
@@ -23,12 +27,18 @@ func (p *netrpcPlugin) Name() string                { return "netrpc" }
 func (p *netrpcPlugin) Init(g *generator.Generator) { p.Generator = g }
 
 func (p *netrpcPlugin) GenerateImports(file *generator.FileDescriptor) {
-	if len(file.Service) > 0 {
-		p.genImportCode(file)
+	if len(file.Service) == 0 {
+		return
 	}
+	p.genImportCode(file)
 }
 
 func (p *netrpcPlugin) Generate(file *generator.FileDescriptor) {
+	if len(file.Service) == 0 {
+		return
+	}
+
+	p.genReferenceImportCode(file)
 	for _, svc := range file.Service {
 		p.genServiceCode(svc)
 	}
@@ -43,10 +53,34 @@ type ServiceMethodSpec struct {
 	MethodName     string
 	InputTypeName  string
 	OutputTypeName string
+	RestAPIs       []ServiceRestMethodSpec
+}
+
+type ServiceRestMethodSpec struct {
+	Method string
+	Url    string
 }
 
 func (p *netrpcPlugin) genImportCode(file *generator.FileDescriptor) {
+	p.P(`import "encoding/json"`)
 	p.P(`import "net/rpc"`)
+	p.P(`import "net/http"`)
+	p.P(`import "regexp"`)
+	p.P(`import "strings"`)
+	p.P()
+	p.P(`import "github.com/chai2010/pbgo"`)
+	p.P(`import "github.com/julienschmidt/httprouter"`)
+}
+
+func (p *netrpcPlugin) genReferenceImportCode(file *generator.FileDescriptor) {
+	p.P("// Reference imports to suppress errors if they are not otherwise used.")
+	p.P("var _ = json.Marshal")
+	p.P("var _ = http.ListenAndServe")
+	p.P("var _ = regexp.Match")
+	p.P("var _ = strings.Split")
+	p.P("var _ = pbgo.PopulateFieldFromPath")
+	p.P("var _ = httprouter.New")
+	p.P()
 }
 
 func (p *netrpcPlugin) genServiceCode(svc *descriptor.ServiceDescriptorProto) {
@@ -72,10 +106,63 @@ func (p *netrpcPlugin) buildServiceSpec(svc *descriptor.ServiceDescriptorProto) 
 			MethodName:     generator.CamelCase(m.GetName()),
 			InputTypeName:  p.TypeName(p.ObjectNamed(m.GetInputType())),
 			OutputTypeName: p.TypeName(p.ObjectNamed(m.GetOutputType())),
+			RestAPIs:       p.buildRestMethodSpec(m),
 		})
 	}
 
 	return spec
+}
+
+func (p *netrpcPlugin) buildRestMethodSpec(m *descriptor.MethodDescriptorProto) []ServiceRestMethodSpec {
+	var restapis []ServiceRestMethodSpec
+
+	restSpec := p.getServiceMethodOption(m)
+	if restSpec == nil {
+		return nil
+	}
+
+	for _, v := range restSpec.AdditionalBindings {
+		if v.Method != "" && v.Url != "" {
+			restapis = append(restapis, ServiceRestMethodSpec{
+				Method: v.Method,
+				Url:    v.Url,
+			})
+		}
+	}
+
+	for _, v := range []pbgo.CustomRestRule{
+		{Method: "GET", Url: restSpec.Get},
+		{Method: "PUT", Url: restSpec.Put},
+		{Method: "POST", Url: restSpec.Post},
+		{Method: "DELETE", Url: restSpec.Delete},
+		{Method: "PATCH", Url: restSpec.Patch},
+	} {
+		if v.Method != "" && v.Url != "" {
+			restapis = append(restapis, ServiceRestMethodSpec{
+				Method: v.Method,
+				Url:    v.Url,
+			})
+		}
+	}
+
+	sort.Slice(restapis, func(i, j int) bool {
+		vi := restapis[i].Method + restapis[i].Url
+		vj := restapis[j].Method + restapis[j].Url
+		return vi < vj
+	})
+
+	return restapis
+}
+
+func (p *netrpcPlugin) getServiceMethodOption(m *descriptor.MethodDescriptorProto) *pbgo.RestMethodOption {
+	if m.Options != nil && proto.HasExtension(m.Options, pbgo.E_RestMethodOption) {
+		if ext, _ := proto.GetExtension(m.Options, pbgo.E_RestMethodOption); ext != nil {
+			if x, _ := ext.(*pbgo.RestMethodOption); x != nil {
+				return x
+			}
+		}
+	}
+	return nil
 }
 
 const tmplService = `
@@ -115,4 +202,77 @@ func (p *{{$root.ServiceName}}Client) {{$m.MethodName}}(in *{{$m.InputTypeName}}
 	return out, nil
 }
 {{end}}
+
+func {{.ServiceName}}Handler(svc {{.ServiceName}}Interface) http.Handler {
+	var router = httprouter.New()
+
+	var re = regexp.MustCompile("(\\*|\\:)(\\w|\\.)+")
+	_ = re
+
+	{{range $_, $m := .MethodList}}
+		{{range $_, $rest := .RestAPIs}}
+			router.Handle("{{$rest.Method}}", "{{$rest.Url}}",
+				func(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+					var (
+						protoReq   String
+						protoReply String
+					)
+
+					if strings.Contains(r.Header.Get("Accept"), "application/json") {
+						w.Header().Set("Content-Type", "application/json")
+					} else {
+						w.Header().Set("Content-Type", "text/plain")
+					}
+
+					for _, fieldPath := range re.FindAllString("{{$rest.Url}}", -1) {
+						fieldPath := strings.TrimLeft(fieldPath, ":*")
+						err := pbgo.PopulateFieldFromPath(&protoReq, fieldPath, ps.ByName(fieldPath))
+						if err != nil {
+							http.Error(w, err.Error(), http.StatusBadRequest)
+							return
+						}
+					}
+
+					if err := pbgo.PopulateQueryParameters(&protoReq, r.URL.Query()); err != nil {
+						http.Error(w, err.Error(), http.StatusBadRequest)
+						return
+					}
+
+					if err := svc.{{$m.MethodName}}(&protoReq, &protoReply); err != nil {
+						http.Error(w, err.Error(), http.StatusInternalServerError)
+						return
+					}
+
+					if err := json.NewEncoder(w).Encode(&protoReply); err != nil {
+						http.Error(w, err.Error(), http.StatusInternalServerError)
+						return
+					}
+				},
+			)
+		{{end}}
+	{{end}}
+
+	return router
+}
 `
+
+/*
+
+type ServiceSpec struct {
+	ServiceName string
+	MethodList  []ServiceMethodSpec
+}
+
+type ServiceMethodSpec struct {
+	MethodName     string
+	InputTypeName  string
+	OutputTypeName string
+	RestAPIs       []ServiceRestMethodSpec
+}
+
+
+type ServiceRestMethodSpec struct {
+	Method string
+	Url    string
+}
+*/
