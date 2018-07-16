@@ -22,9 +22,13 @@ package hello_pb;
 message String {
 	string value = 1;
 }
+message Message {
+	string value = 1;
+}
 
 service HelloService {
 	rpc Hello (String) returns (String);
+	rpc Echo (Message) returns (Message);
 }
 ```
 
@@ -52,6 +56,10 @@ type HelloService struct{}
 
 func (p *HelloService) Hello(request *hello_pb.String, reply *hello_pb.String) error {
 	reply.Value = "hello:" + request.GetValue()
+	return nil
+}
+func (p *HelloService) Echo(request *hello_pb.Message, reply *hello_pb.Message) error {
+	*reply = *request
 	return nil
 }
 
@@ -95,7 +103,6 @@ func main() {
 
 
 ## Example (rest api)
-
 
 create proto file:
 
