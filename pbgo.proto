@@ -18,9 +18,5 @@ message RestMethodOption {
 	string method = 1;
 	string url = 2;
 
-	string get = 3;
-	string post = 4;
-	string put = 5;
-	string patch = 6;
-	string delete = 7;
+	repeated RestMethodOption additional_bindings = 3;
 }
