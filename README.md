@@ -110,6 +110,8 @@ create proto file:
 syntax = "proto3";
 package hello_pb;
 
+import "github.com/chai2010/pbgo/pbgo.proto";
+
 message String {
 	string value = 1;
 }
