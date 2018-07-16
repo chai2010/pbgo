@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
-package netrpc
+package main
 
 import (
 	"bytes"
@@ -17,23 +17,25 @@ import (
 	"github.com/chai2010/pbgo"
 )
 
+const pbgoPluginName = "pbgo"
+
 func init() {
-	generator.RegisterPlugin(new(netrpcPlugin))
+	generator.RegisterPlugin(new(pbgoPlugin))
 }
 
-type netrpcPlugin struct{ *generator.Generator }
+type pbgoPlugin struct{ *generator.Generator }
 
-func (p *netrpcPlugin) Name() string                { return "netrpc" }
-func (p *netrpcPlugin) Init(g *generator.Generator) { p.Generator = g }
+func (p *pbgoPlugin) Name() string                { return pbgoPluginName }
+func (p *pbgoPlugin) Init(g *generator.Generator) { p.Generator = g }
 
-func (p *netrpcPlugin) GenerateImports(file *generator.FileDescriptor) {
+func (p *pbgoPlugin) GenerateImports(file *generator.FileDescriptor) {
 	if len(file.Service) == 0 {
 		return
 	}
 	p.genImportCode(file)
 }
 
-func (p *netrpcPlugin) Generate(file *generator.FileDescriptor) {
+func (p *pbgoPlugin) Generate(file *generator.FileDescriptor) {
 	if len(file.Service) == 0 {
 		return
 	}
@@ -61,7 +63,7 @@ type ServiceRestMethodSpec struct {
 	Url    string
 }
 
-func (p *netrpcPlugin) genImportCode(file *generator.FileDescriptor) {
+func (p *pbgoPlugin) genImportCode(file *generator.FileDescriptor) {
 	p.P(`import "encoding/json"`)
 	p.P(`import "net/rpc"`)
 	p.P(`import "net/http"`)
@@ -72,7 +74,7 @@ func (p *netrpcPlugin) genImportCode(file *generator.FileDescriptor) {
 	p.P(`import "github.com/julienschmidt/httprouter"`)
 }
 
-func (p *netrpcPlugin) genReferenceImportCode(file *generator.FileDescriptor) {
+func (p *pbgoPlugin) genReferenceImportCode(file *generator.FileDescriptor) {
 	p.P("// Reference imports to suppress errors if they are not otherwise used.")
 	p.P("var _ = json.Marshal")
 	p.P("var _ = http.ListenAndServe")
@@ -83,7 +85,7 @@ func (p *netrpcPlugin) genReferenceImportCode(file *generator.FileDescriptor) {
 	p.P()
 }
 
-func (p *netrpcPlugin) genServiceCode(svc *descriptor.ServiceDescriptorProto) {
+func (p *pbgoPlugin) genServiceCode(svc *descriptor.ServiceDescriptorProto) {
 	spec := p.buildServiceSpec(svc)
 
 	var buf bytes.Buffer
@@ -96,7 +98,7 @@ func (p *netrpcPlugin) genServiceCode(svc *descriptor.ServiceDescriptorProto) {
 	p.P(buf.String())
 }
 
-func (p *netrpcPlugin) buildServiceSpec(svc *descriptor.ServiceDescriptorProto) *ServiceSpec {
+func (p *pbgoPlugin) buildServiceSpec(svc *descriptor.ServiceDescriptorProto) *ServiceSpec {
 	spec := &ServiceSpec{
 		ServiceName: generator.CamelCase(svc.GetName()),
 	}
@@ -113,7 +115,7 @@ func (p *netrpcPlugin) buildServiceSpec(svc *descriptor.ServiceDescriptorProto) 
 	return spec
 }
 
-func (p *netrpcPlugin) buildRestMethodSpec(m *descriptor.MethodDescriptorProto) []ServiceRestMethodSpec {
+func (p *pbgoPlugin) buildRestMethodSpec(m *descriptor.MethodDescriptorProto) []ServiceRestMethodSpec {
 	var restapis []ServiceRestMethodSpec
 
 	restSpec := p.getServiceMethodOption(m)
@@ -154,7 +156,7 @@ func (p *netrpcPlugin) buildRestMethodSpec(m *descriptor.MethodDescriptorProto) 
 	return restapis
 }
 
-func (p *netrpcPlugin) getServiceMethodOption(m *descriptor.MethodDescriptorProto) *pbgo.RestMethodOption {
+func (p *pbgoPlugin) getServiceMethodOption(m *descriptor.MethodDescriptorProto) *pbgo.RestMethodOption {
 	if m.Options != nil && proto.HasExtension(m.Options, pbgo.E_RestMethodOption) {
 		if ext, _ := proto.GetExtension(m.Options, pbgo.E_RestMethodOption); ext != nil {
 			if x, _ := ext.(*pbgo.RestMethodOption); x != nil {

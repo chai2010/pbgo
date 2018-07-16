@@ -46,11 +46,16 @@
 //
 // See the README and documentation for protocol buffers to learn more:
 // 	https://developers.google.com/protocol-buffers/
+
+// copy from https://github.com/golang/protobuf/blob/master/protoc-gen-go/main.go
+
+// protoc-gen-pbgo is a plugin for the Protobuf compiler to generate rpc/rest code.
 package main
 
 import (
 	"io/ioutil"
 	"os"
+	"strings"
 
 	"github.com/golang/protobuf/proto"
 	"github.com/golang/protobuf/protoc-gen-go/generator"
@@ -75,7 +80,11 @@ func main() {
 		g.Fail("no files to generate")
 	}
 
-	g.CommandLineParameters(g.Request.GetParameter())
+	parameter := g.Request.GetParameter()
+	if !strings.Contains(parameter, "plugins=") {
+		parameter += ",plugins=" + pbgoPluginName
+	}
+	g.CommandLineParameters(parameter)
 
 	// Create a wrapped version of the Descriptors and EnumDescriptors that
 	// point to the file that defines them.
