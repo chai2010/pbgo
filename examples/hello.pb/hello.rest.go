@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"net/http"
 	"regexp"
+	"strings"
 
 	"github.com/julienschmidt/httprouter"
 
@@ -21,6 +22,12 @@ func HelloServiceHandler(svc HelloServiceInterface) http.Handler {
 				protoReq   String
 				protoReply String
 			)
+
+			if strings.Contains(r.Header.Get("Accept"), "application/json") {
+				w.Header().Set("Content-Type", "application/json")
+			} else {
+				w.Header().Set("Content-Type", "text/plain")
+			}
 
 			for _, fieldPath := range re.FindAllString("/hello/:value", -1) {
 				err := pbgo.PopulateFieldFromPath(&protoReq, fieldPath, ps.ByName(fieldPath))
@@ -53,6 +60,12 @@ func HelloServiceHandler(svc HelloServiceInterface) http.Handler {
 				protoReq   String
 				protoReply String
 			)
+
+			if strings.Contains(r.Header.Get("Accept"), "application/json") {
+				w.Header().Set("Content-Type", "application/json")
+			} else {
+				w.Header().Set("Content-Type", "text/plain")
+			}
 
 			if err := json.NewDecoder(r.Body).Decode(&protoReq); err != nil {
 				http.Error(w, err.Error(), http.StatusBadRequest)
