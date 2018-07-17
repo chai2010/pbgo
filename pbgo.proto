@@ -28,8 +28,8 @@ message CustomHttpRule {
 	string method = 1;
 	string url = 2;
 
-	string content_type = 3; // must be 'string' type
-	string content_body = 4; // must be 'bytes' type
-
+	string content_type = 3;  // must be 'string' type
+	string content_body = 4;  // must be 'bytes' type
 	string custom_header = 5; // must be 'map<string,string>' type
+	string request_body = 6;  // must be 'bytes' type
 }

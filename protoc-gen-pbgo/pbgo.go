@@ -65,10 +65,12 @@ type ServiceRestMethodSpec struct {
 	ContentType  string
 	ContentBody  string
 	CustomHeader string
+	RequestBody  string
 }
 
 func (p *pbgoPlugin) genImportCode(file *generator.FileDescriptor) {
 	p.P(`import "encoding/json"`)
+	p.P(`import "io/ioutil"`)
 	p.P(`import "net/rpc"`)
 	p.P(`import "net/http"`)
 	p.P(`import "regexp"`)
@@ -82,6 +84,7 @@ func (p *pbgoPlugin) genReferenceImportCode(file *generator.FileDescriptor) {
 	p.P("// Reference imports to suppress errors if they are not otherwise used.")
 	p.P("var _ = json.Marshal")
 	p.P("var _ = http.ListenAndServe")
+	p.P("var _ = ioutil.ReadAll")
 	p.P("var _ = regexp.Match")
 	p.P("var _ = strings.Split")
 	p.P("var _ = pbgo.PopulateFieldFromPath")
@@ -135,6 +138,7 @@ func (p *pbgoPlugin) buildRestMethodSpec(m *descriptor.MethodDescriptorProto) []
 				ContentType:  v.ContentType,
 				ContentBody:  v.ContentBody,
 				CustomHeader: v.CustomHeader,
+				RequestBody:  v.RequestBody,
 			})
 		}
 	}
@@ -265,7 +269,18 @@ func {{.ServiceName}}Handler(svc {{.ServiceName}}Interface) http.Handler {
 						return
 					}
 
-					{{if or (eq "POST" $rest.Method) (eq "PUT" $rest.Method) (eq "PATCH" $rest.Method)}}
+					{{if $rest.RequestBody}}
+						rBody, err := ioutil.ReadAll(r.Body)
+						if err != nil {
+							http.Error(w, err.Error(), http.StatusBadRequest)
+							return
+						}
+						err := pbgo.PopulateFieldFromPath(&protoReq, "{{$rest.RequestBody}}", rBody)
+						if err != nil {
+							http.Error(w, err.Error(), http.StatusBadRequest)
+							return
+						}
+					{{else if or (eq "POST" $rest.Method) (eq "PUT" $rest.Method) (eq "PATCH" $rest.Method)}}
 						if err := json.NewDecoder(r.Body).Decode(&protoReq); err != nil {
 							http.Error(w, err.Error(), http.StatusBadRequest)
 							return
