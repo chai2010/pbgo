@@ -9,6 +9,7 @@ import math "math"
 import _ "github.com/chai2010/pbgo"
 
 import "encoding/json"
+import "io/ioutil"
 import "net/rpc"
 import "net/http"
 import "regexp"
@@ -184,6 +185,7 @@ func init() {
 // Reference imports to suppress errors if they are not otherwise used.
 var _ = json.Marshal
 var _ = http.ListenAndServe
+var _ = ioutil.ReadAll
 var _ = regexp.Match
 var _ = strings.Split
 var _ = pbgo.PopulateFieldFromPath

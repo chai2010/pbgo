@@ -275,7 +275,7 @@ func {{.ServiceName}}Handler(svc {{.ServiceName}}Interface) http.Handler {
 							http.Error(w, err.Error(), http.StatusBadRequest)
 							return
 						}
-						err := pbgo.PopulateFieldFromPath(&protoReq, "{{$rest.RequestBody}}", rBody)
+						err := pbgo.PopulateFieldFromPath(&protoReq, "{{$rest.RequestBody}}", string(rBody))
 						if err != nil {
 							http.Error(w, err.Error(), http.StatusBadRequest)
 							return
