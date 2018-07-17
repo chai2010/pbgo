@@ -11,6 +11,10 @@ import "github.com/chai2010/pbgo/pbgo.proto";
 message String {
 	string value = 1;
 }
+message StaticFile {
+	string content_type = 1;
+	bytes content_body = 2;
+}
 
 message Message {
 	string value = 1;
@@ -36,6 +40,16 @@ service HelloService {
 	rpc Echo (Message) returns (Message) {
 		option (pbgo.rest_api) = {
 			get: "/echo/:subfiled.value"
+		};
+	}
+	rpc Static(String) returns (StaticFile) {
+		option (pbgo.rest_api) = {
+			additional_bindings {
+				method: "GET"
+				url: "/static/:value"
+				content_type: ":content_type"
+				content_body: ":content_body"
+			}
 		};
 	}
 }

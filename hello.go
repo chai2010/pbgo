@@ -8,7 +8,9 @@ package main
 
 import (
 	"fmt"
+	"io/ioutil"
 	"log"
+	"mime"
 	"net"
 	"net/rpc"
 
@@ -23,6 +25,17 @@ func (p *HelloService) Hello(request *hello_pb.String, reply *hello_pb.String) e
 }
 func (p *HelloService) Echo(request *hello_pb.Message, reply *hello_pb.Message) error {
 	*reply = *request
+	return nil
+}
+
+func (p *HelloService) Static(request *hello_pb.String, reply *hello_pb.StaticFile) error {
+	data, err := ioutil.ReadFile("./testdata/" + request.Value)
+	if err != nil {
+		return err
+	}
+
+	reply.ContentType = mime.TypeByExtension(request.Value)
+	reply.ContentBody = data
 	return nil
 }
 

@@ -27,4 +27,7 @@ message HttpRule {
 message CustomHttpRule {
 	string method = 1;
 	string url = 2;
+
+	string content_type = 3; // must be 'string' type
+	string content_body = 4; // must be 'bytes' type
 }

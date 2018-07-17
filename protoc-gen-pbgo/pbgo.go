@@ -8,6 +8,7 @@ import (
 	"bytes"
 	"log"
 	"sort"
+	"strings"
 	"text/template"
 
 	"github.com/golang/protobuf/proto"
@@ -59,8 +60,10 @@ type ServiceMethodSpec struct {
 }
 
 type ServiceRestMethodSpec struct {
-	Method string
-	Url    string
+	Method      string
+	Url         string
+	ContentType string
+	ContentBody string
 }
 
 func (p *pbgoPlugin) genImportCode(file *generator.FileDescriptor) {
@@ -126,8 +129,10 @@ func (p *pbgoPlugin) buildRestMethodSpec(m *descriptor.MethodDescriptorProto) []
 	for _, v := range restSpec.AdditionalBindings {
 		if v.Method != "" && v.Url != "" {
 			restapis = append(restapis, ServiceRestMethodSpec{
-				Method: v.Method,
-				Url:    v.Url,
+				Method:      v.Method,
+				Url:         v.Url,
+				ContentType: v.ContentType,
+				ContentBody: v.ContentBody,
 			})
 		}
 	}
@@ -144,6 +149,23 @@ func (p *pbgoPlugin) buildRestMethodSpec(m *descriptor.MethodDescriptorProto) []
 				Method: v.Method,
 				Url:    v.Url,
 			})
+		}
+	}
+
+	for i, v := range restapis {
+		if strings.HasPrefix(v.ContentType, ":") {
+			ss := strings.Split(strings.TrimLeft(v.ContentBody, ":*"), ".")
+			for i := 0; i < len(ss); i++ {
+				ss[i] = generator.CamelCase(ss[i])
+			}
+			restapis[i].ContentType = strings.Join(ss, ".")
+		}
+		if strings.HasPrefix(v.ContentBody, ":") {
+			ss := strings.Split(strings.TrimLeft(v.ContentBody, ":*"), ".")
+			for i := 0; i < len(ss); i++ {
+				ss[i] = generator.CamelCase(ss[i])
+			}
+			restapis[i].ContentBody = strings.Join(ss, ".")
 		}
 	}
 
@@ -220,12 +242,6 @@ func {{.ServiceName}}Handler(svc {{.ServiceName}}Interface) http.Handler {
 						protoReply {{$m.OutputTypeName}}
 					)
 
-					if strings.Contains(r.Header.Get("Accept"), "application/json") {
-						w.Header().Set("Content-Type", "application/json")
-					} else {
-						w.Header().Set("Content-Type", "text/plain")
-					}
-
 					for _, fieldPath := range re.FindAllString("{{$rest.Url}}", -1) {
 						fieldPath := strings.TrimLeft(fieldPath, ":*")
 						err := pbgo.PopulateFieldFromPath(&protoReq, fieldPath, ps.ByName(fieldPath))
@@ -245,10 +261,27 @@ func {{.ServiceName}}Handler(svc {{.ServiceName}}Interface) http.Handler {
 						return
 					}
 
-					if err := json.NewEncoder(w).Encode(&protoReply); err != nil {
-						http.Error(w, err.Error(), http.StatusInternalServerError)
-						return
-					}
+					{{if $rest.ContentType}}
+						w.Header().Set("Content-Type", "{{$rest.ContentType}}")
+					{{else}}
+						if strings.Contains(r.Header.Get("Accept"), "application/json") {
+							w.Header().Set("Content-Type", "application/json")
+						} else {
+							w.Header().Set("Content-Type", "text/plain")
+						}
+					{{end}}
+
+					{{if $rest.ContentBody}}
+						if _, err := w.Write(protoReply.{{$rest.ContentBody}}); err != nil {
+							http.Error(w, err.Error(), http.StatusInternalServerError)
+							return
+						}
+					{{else}}
+						if err := json.NewEncoder(w).Encode(&protoReply); err != nil {
+							http.Error(w, err.Error(), http.StatusInternalServerError)
+							return
+						}
+					{{end}}
 				},
 			)
 		{{end}}

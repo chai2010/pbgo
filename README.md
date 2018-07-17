@@ -123,6 +123,11 @@ message Message {
 	String subfiled = 4;
 }
 
+message StaticFile {
+	string content_type = 1;
+	bytes content_body = 2;
+}
+
 service HelloService {
 	rpc Hello (String) returns (String) {
 		option (pbgo.rest_api) = {
@@ -142,6 +147,16 @@ service HelloService {
 			get: "/echo/:subfiled.value"
 		};
 	}
+	rpc Static(String) returns (StaticFile) {
+		option (pbgo.rest_api) = {
+			additional_bindings {
+				method: "GET";
+				url: "/static/:value";
+				content_type: ":content_type";
+				content_body: ":content_body"
+			}
+		};
+	}
 }
 ```
 
@@ -157,11 +172,11 @@ use generate code:
 package main
 
 import (
-	"fmt"
+	"io/ioutil"
 	"log"
+	"mime"
 	"net/http"
-
-	"github.com/julienschmidt/httprouter"
+	"time"
 
 	"github.com/chai2010/pbgo/examples/hello.pb"
 )
@@ -174,6 +189,16 @@ func (p *HelloService) Hello(request *hello_pb.String, reply *hello_pb.String) e
 }
 func (p *HelloService) Echo(request *hello_pb.Message, reply *hello_pb.Message) error {
 	*reply = *request
+	return nil
+}
+func (p *HelloService) Static(request *hello_pb.String, reply *hello_pb.StaticFile) error {
+	data, err := ioutil.ReadFile("./testdata/" + request.Value)
+	if err != nil {
+		return err
+	}
+
+	reply.ContentType = mime.TypeByExtension(request.Value)
+	reply.ContentBody = data
 	return nil
 }
 
@@ -207,6 +232,9 @@ $ curl "localhost:8080/echo/gopher?array=123&array=456"
 {"array":[123,456],"subfiled":{"value":"gopher"}}
 $ curl "localhost:8080/echo/gopher?dict%5Babc%5D=123"
 {"dict":{"abc":"123"},"subfiled":{"value":"gopher"}}
+
+$ curl localhost:8080/static/gopher.png
+$ curl localhost:8080/static/hello.txt
 ```
 
 ## BUGS
