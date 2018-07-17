@@ -225,6 +225,8 @@ $ curl localhost:8080/hello/gopher
 {"value":"hello:gopher"}
 $ curl localhost:8080/hello/gopher?value=vgo
 {"value":"hello:vgo"}
+$ curl localhost:8080/hello -X POST --data '{"value":"cgo"}'
+{"value":"hello:cgo"}
 
 $ curl localhost:8080/echo/gopher
 {"subfiled":{"value":"gopher"}}

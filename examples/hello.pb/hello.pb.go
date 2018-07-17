@@ -345,6 +345,11 @@ func HelloServiceHandler(svc HelloServiceInterface) http.Handler {
 				return
 			}
 
+			if err := json.NewDecoder(r.Body).Decode(&protoReq); err != nil {
+				http.Error(w, err.Error(), http.StatusBadRequest)
+				return
+			}
+
 			if err := svc.Hello(&protoReq, &protoReply); err != nil {
 				http.Error(w, err.Error(), http.StatusInternalServerError)
 				return
@@ -381,6 +386,11 @@ func HelloServiceHandler(svc HelloServiceInterface) http.Handler {
 			}
 
 			if err := pbgo.PopulateQueryParameters(&protoReq, r.URL.Query()); err != nil {
+				http.Error(w, err.Error(), http.StatusBadRequest)
+				return
+			}
+
+			if err := json.NewDecoder(r.Body).Decode(&protoReq); err != nil {
 				http.Error(w, err.Error(), http.StatusBadRequest)
 				return
 			}

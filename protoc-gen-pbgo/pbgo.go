@@ -265,6 +265,13 @@ func {{.ServiceName}}Handler(svc {{.ServiceName}}Interface) http.Handler {
 						return
 					}
 
+					{{if or (eq "POST" $rest.Method) (eq "PUT" $rest.Method) (eq "PATCH" $rest.Method)}}
+						if err := json.NewDecoder(r.Body).Decode(&protoReq); err != nil {
+							http.Error(w, err.Error(), http.StatusBadRequest)
+							return
+						}
+					{{end}}
+
 					if err := svc.{{$m.MethodName}}(&protoReq, &protoReply); err != nil {
 						http.Error(w, err.Error(), http.StatusInternalServerError)
 						return
