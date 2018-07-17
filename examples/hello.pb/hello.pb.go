@@ -470,7 +470,7 @@ func HelloServiceHandler(svc HelloServiceInterface) http.Handler {
 				return
 			}
 
-			w.Header().Set("Content-Type", "ContentBody")
+			w.Header().Set("Content-Type", "ContentType")
 
 			if _, err := w.Write(protoReply.ContentBody); err != nil {
 				http.Error(w, err.Error(), http.StatusInternalServerError)

@@ -60,10 +60,11 @@ type ServiceMethodSpec struct {
 }
 
 type ServiceRestMethodSpec struct {
-	Method      string
-	Url         string
-	ContentType string
-	ContentBody string
+	Method       string
+	Url          string
+	ContentType  string
+	ContentBody  string
+	CustomHeader string
 }
 
 func (p *pbgoPlugin) genImportCode(file *generator.FileDescriptor) {
@@ -129,10 +130,11 @@ func (p *pbgoPlugin) buildRestMethodSpec(m *descriptor.MethodDescriptorProto) []
 	for _, v := range restSpec.AdditionalBindings {
 		if v.Method != "" && v.Url != "" {
 			restapis = append(restapis, ServiceRestMethodSpec{
-				Method:      v.Method,
-				Url:         v.Url,
-				ContentType: v.ContentType,
-				ContentBody: v.ContentBody,
+				Method:       v.Method,
+				Url:          v.Url,
+				ContentType:  v.ContentType,
+				ContentBody:  v.ContentBody,
+				CustomHeader: v.CustomHeader,
 			})
 		}
 	}
@@ -154,7 +156,7 @@ func (p *pbgoPlugin) buildRestMethodSpec(m *descriptor.MethodDescriptorProto) []
 
 	for i, v := range restapis {
 		if strings.HasPrefix(v.ContentType, ":") {
-			ss := strings.Split(strings.TrimLeft(v.ContentBody, ":*"), ".")
+			ss := strings.Split(strings.TrimLeft(v.ContentType, ":*"), ".")
 			for i := 0; i < len(ss); i++ {
 				ss[i] = generator.CamelCase(ss[i])
 			}
@@ -166,6 +168,13 @@ func (p *pbgoPlugin) buildRestMethodSpec(m *descriptor.MethodDescriptorProto) []
 				ss[i] = generator.CamelCase(ss[i])
 			}
 			restapis[i].ContentBody = strings.Join(ss, ".")
+		}
+		if v.CustomHeader != "" {
+			ss := strings.Split(strings.TrimLeft(v.CustomHeader, ":*"), ".")
+			for i := 0; i < len(ss); i++ {
+				ss[i] = generator.CamelCase(ss[i])
+			}
+			restapis[i].CustomHeader = strings.Join(ss, ".")
 		}
 	}
 
@@ -260,6 +269,12 @@ func {{.ServiceName}}Handler(svc {{.ServiceName}}Interface) http.Handler {
 						http.Error(w, err.Error(), http.StatusInternalServerError)
 						return
 					}
+
+					{{if $rest.CustomHeader}}
+						for k, v := range protoReply.{{$rest.CustomHeader}} {
+							w.Header().Set(k, v)
+						}
+					{{end}}
 
 					{{if $rest.ContentType}}
 						w.Header().Set("Content-Type", "{{$rest.ContentType}}")
