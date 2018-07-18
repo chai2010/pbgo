@@ -9,6 +9,7 @@ import math "math"
 import _ "github.com/chai2010/pbgo"
 
 import "encoding/json"
+import "io"
 import "io/ioutil"
 import "net/rpc"
 import "net/http"
@@ -185,6 +186,7 @@ func init() {
 // Reference imports to suppress errors if they are not otherwise used.
 var _ = json.Marshal
 var _ = http.ListenAndServe
+var _ = io.EOF
 var _ = ioutil.ReadAll
 var _ = regexp.Match
 var _ = strings.Split
@@ -337,7 +339,7 @@ func HelloServiceHandler(svc HelloServiceInterface) http.Handler {
 				return
 			}
 
-			if err := json.NewDecoder(r.Body).Decode(&protoReq); err != nil {
+			if err := json.NewDecoder(r.Body).Decode(&protoReq); err != nil && err != io.EOF {
 				http.Error(w, err.Error(), http.StatusBadRequest)
 				return
 			}
@@ -377,7 +379,7 @@ func HelloServiceHandler(svc HelloServiceInterface) http.Handler {
 				return
 			}
 
-			if err := json.NewDecoder(r.Body).Decode(&protoReq); err != nil {
+			if err := json.NewDecoder(r.Body).Decode(&protoReq); err != nil && err != io.EOF {
 				http.Error(w, err.Error(), http.StatusBadRequest)
 				return
 			}
