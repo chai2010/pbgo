@@ -256,6 +256,27 @@ func (p *{{$root.ServiceName}}Client) {{$m.MethodName}}(in *{{$m.InputTypeName}}
 
 	return out, nil
 }
+func (p *{{$root.ServiceName}}Client) Async{{$m.MethodName}}(in *{{$m.InputTypeName}}, out *{{$m.OutputTypeName}}, done chan *rpc.Call) *rpc.Call {
+	if x, ok := proto.Message(in).(interface { Validate() error }); ok {
+		if err := x.Validate(); err != nil {
+			call := &rpc.Call{
+				ServiceMethod: "{{$root.ServiceName}}.{{$m.MethodName}}",
+				Args:          in,
+				Reply:         out,
+				Error:         err,
+				Done:          make(chan *rpc.Call, 10),
+			}
+			call.Done <- call
+			return call
+		}
+	}
+
+	return p.Go(
+		"{{$root.ServiceName}}.{{$m.MethodName}}",
+		in, out,
+		done,
+	)
+}
 {{end}}
 
 func {{.ServiceName}}Handler(svc {{.ServiceName}}Interface) http.Handler {

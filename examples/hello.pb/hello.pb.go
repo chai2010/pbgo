@@ -238,6 +238,27 @@ func (p *HelloServiceClient) Hello(in *String) (*String, error) {
 
 	return out, nil
 }
+func (p *HelloServiceClient) AsyncHello(in *String, out *String, done chan *rpc.Call) *rpc.Call {
+	if x, ok := proto.Message(in).(interface{ Validate() error }); ok {
+		if err := x.Validate(); err != nil {
+			call := &rpc.Call{
+				ServiceMethod: "HelloService.Hello",
+				Args:          in,
+				Reply:         out,
+				Error:         err,
+				Done:          make(chan *rpc.Call, 10),
+			}
+			call.Done <- call
+			return call
+		}
+	}
+
+	return p.Go(
+		"HelloService.Hello",
+		in, out,
+		done,
+	)
+}
 
 func (p *HelloServiceClient) Echo(in *Message) (*Message, error) {
 	if x, ok := proto.Message(in).(interface{ Validate() error }); ok {
@@ -259,6 +280,27 @@ func (p *HelloServiceClient) Echo(in *Message) (*Message, error) {
 
 	return out, nil
 }
+func (p *HelloServiceClient) AsyncEcho(in *Message, out *Message, done chan *rpc.Call) *rpc.Call {
+	if x, ok := proto.Message(in).(interface{ Validate() error }); ok {
+		if err := x.Validate(); err != nil {
+			call := &rpc.Call{
+				ServiceMethod: "HelloService.Echo",
+				Args:          in,
+				Reply:         out,
+				Error:         err,
+				Done:          make(chan *rpc.Call, 10),
+			}
+			call.Done <- call
+			return call
+		}
+	}
+
+	return p.Go(
+		"HelloService.Echo",
+		in, out,
+		done,
+	)
+}
 
 func (p *HelloServiceClient) Static(in *String) (*StaticFile, error) {
 	if x, ok := proto.Message(in).(interface{ Validate() error }); ok {
@@ -279,6 +321,27 @@ func (p *HelloServiceClient) Static(in *String) (*StaticFile, error) {
 	}
 
 	return out, nil
+}
+func (p *HelloServiceClient) AsyncStatic(in *String, out *StaticFile, done chan *rpc.Call) *rpc.Call {
+	if x, ok := proto.Message(in).(interface{ Validate() error }); ok {
+		if err := x.Validate(); err != nil {
+			call := &rpc.Call{
+				ServiceMethod: "HelloService.Static",
+				Args:          in,
+				Reply:         out,
+				Error:         err,
+				Done:          make(chan *rpc.Call, 10),
+			}
+			call.Done <- call
+			return call
+		}
+	}
+
+	return p.Go(
+		"HelloService.Static",
+		in, out,
+		done,
+	)
 }
 
 func HelloServiceHandler(svc HelloServiceInterface) http.Handler {
