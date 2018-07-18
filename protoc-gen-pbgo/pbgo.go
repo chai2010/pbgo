@@ -217,11 +217,41 @@ type {{.ServiceName}}Interface interface {
 }
 
 func Register{{.ServiceName}}(srv *rpc.Server, x {{.ServiceName}}Interface) error {
+	if _, ok := x.(*{{.ServiceName}}Validator); !ok {
+		x = &{{.ServiceName}}Validator{ {{.ServiceName}}Interface: x }
+	}
+
 	if err := srv.RegisterName("{{.ServiceName}}", x); err != nil {
 		return err
 	}
 	return nil
 }
+
+type {{.ServiceName}}Validator struct {
+	{{.ServiceName}}Interface
+}
+
+{{range $_, $m := .MethodList}}
+func (p *{{$root.ServiceName}}Validator) {{$m.MethodName}}(in *{{$m.InputTypeName}}, out *{{$m.OutputTypeName}}) error {
+	if x, ok := proto.Message(in).(interface { Validate() error }); ok {
+		if err := x.Validate(); err != nil {
+			return err
+		}
+	}
+
+	if err := p.{{$root.ServiceName}}Interface.{{$m.MethodName}}(in, out); err != nil {
+		return err
+	}
+
+	if x, ok := proto.Message(out).(interface { Validate() error }); ok {
+		if err := x.Validate(); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+{{end}}
 
 type {{.ServiceName}}Client struct {
 	*rpc.Client

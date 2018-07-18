@@ -200,9 +200,77 @@ type HelloServiceInterface interface {
 }
 
 func RegisterHelloService(srv *rpc.Server, x HelloServiceInterface) error {
+	if _, ok := x.(*HelloServiceValidator); !ok {
+		x = &HelloServiceValidator{HelloServiceInterface: x}
+	}
+
 	if err := srv.RegisterName("HelloService", x); err != nil {
 		return err
 	}
+	return nil
+}
+
+type HelloServiceValidator struct {
+	HelloServiceInterface
+}
+
+func (p *HelloServiceValidator) Hello(in *String, out *String) error {
+	if x, ok := proto.Message(in).(interface{ Validate() error }); ok {
+		if err := x.Validate(); err != nil {
+			return err
+		}
+	}
+
+	if err := p.HelloServiceInterface.Hello(in, out); err != nil {
+		return err
+	}
+
+	if x, ok := proto.Message(out).(interface{ Validate() error }); ok {
+		if err := x.Validate(); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (p *HelloServiceValidator) Echo(in *Message, out *Message) error {
+	if x, ok := proto.Message(in).(interface{ Validate() error }); ok {
+		if err := x.Validate(); err != nil {
+			return err
+		}
+	}
+
+	if err := p.HelloServiceInterface.Echo(in, out); err != nil {
+		return err
+	}
+
+	if x, ok := proto.Message(out).(interface{ Validate() error }); ok {
+		if err := x.Validate(); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (p *HelloServiceValidator) Static(in *String, out *StaticFile) error {
+	if x, ok := proto.Message(in).(interface{ Validate() error }); ok {
+		if err := x.Validate(); err != nil {
+			return err
+		}
+	}
+
+	if err := p.HelloServiceInterface.Static(in, out); err != nil {
+		return err
+	}
+
+	if x, ok := proto.Message(out).(interface{ Validate() error }); ok {
+		if err := x.Validate(); err != nil {
+			return err
+		}
+	}
+
 	return nil
 }
 
