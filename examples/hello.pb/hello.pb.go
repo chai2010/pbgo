@@ -219,26 +219,65 @@ func DialHelloService(network, address string) (*HelloServiceClient, error) {
 }
 
 func (p *HelloServiceClient) Hello(in *String) (*String, error) {
+	if x, ok := proto.Message(in).(interface{ Validate() error }); ok {
+		if err := x.Validate(); err != nil {
+			return nil, err
+		}
+	}
+
 	var out = new(String)
 	if err := p.Client.Call("HelloService.Hello", in, out); err != nil {
 		return nil, err
 	}
+
+	if x, ok := proto.Message(out).(interface{ Validate() error }); ok {
+		if err := x.Validate(); err != nil {
+			return nil, err
+		}
+	}
+
 	return out, nil
 }
 
 func (p *HelloServiceClient) Echo(in *Message) (*Message, error) {
+	if x, ok := proto.Message(in).(interface{ Validate() error }); ok {
+		if err := x.Validate(); err != nil {
+			return nil, err
+		}
+	}
+
 	var out = new(Message)
 	if err := p.Client.Call("HelloService.Echo", in, out); err != nil {
 		return nil, err
 	}
+
+	if x, ok := proto.Message(out).(interface{ Validate() error }); ok {
+		if err := x.Validate(); err != nil {
+			return nil, err
+		}
+	}
+
 	return out, nil
 }
 
 func (p *HelloServiceClient) Static(in *String) (*StaticFile, error) {
+	if x, ok := proto.Message(in).(interface{ Validate() error }); ok {
+		if err := x.Validate(); err != nil {
+			return nil, err
+		}
+	}
+
 	var out = new(StaticFile)
 	if err := p.Client.Call("HelloService.Static", in, out); err != nil {
 		return nil, err
 	}
+
+	if x, ok := proto.Message(out).(interface{ Validate() error }); ok {
+		if err := x.Validate(); err != nil {
+			return nil, err
+		}
+	}
+
 	return out, nil
 }
 
@@ -260,11 +299,25 @@ func HelloServiceHandler(svc HelloServiceInterface) http.Handler {
 				return
 			}
 
+			if x, ok := proto.Message(&protoReq).(interface{ Validate() error }); ok {
+				if err := x.Validate(); err != nil {
+					http.Error(w, err.Error(), http.StatusBadRequest)
+					return
+				}
+			}
+
 			if err := svc.Hello(&protoReq, &protoReply); err != nil {
 				if pbgoErr, ok := err.(pbgo.Error); ok {
 					http.Error(w, pbgoErr.Text(), pbgoErr.HttpStatus())
 					return
 				} else {
+					http.Error(w, err.Error(), http.StatusInternalServerError)
+					return
+				}
+			}
+
+			if x, ok := proto.Message(&protoReply).(interface{ Validate() error }); ok {
+				if err := x.Validate(); err != nil {
 					http.Error(w, err.Error(), http.StatusInternalServerError)
 					return
 				}
@@ -304,11 +357,25 @@ func HelloServiceHandler(svc HelloServiceInterface) http.Handler {
 				return
 			}
 
+			if x, ok := proto.Message(&protoReq).(interface{ Validate() error }); ok {
+				if err := x.Validate(); err != nil {
+					http.Error(w, err.Error(), http.StatusBadRequest)
+					return
+				}
+			}
+
 			if err := svc.Hello(&protoReq, &protoReply); err != nil {
 				if pbgoErr, ok := err.(pbgo.Error); ok {
 					http.Error(w, pbgoErr.Text(), pbgoErr.HttpStatus())
 					return
 				} else {
+					http.Error(w, err.Error(), http.StatusInternalServerError)
+					return
+				}
+			}
+
+			if x, ok := proto.Message(&protoReply).(interface{ Validate() error }); ok {
+				if err := x.Validate(); err != nil {
 					http.Error(w, err.Error(), http.StatusInternalServerError)
 					return
 				}
@@ -344,11 +411,25 @@ func HelloServiceHandler(svc HelloServiceInterface) http.Handler {
 				return
 			}
 
+			if x, ok := proto.Message(&protoReq).(interface{ Validate() error }); ok {
+				if err := x.Validate(); err != nil {
+					http.Error(w, err.Error(), http.StatusBadRequest)
+					return
+				}
+			}
+
 			if err := svc.Hello(&protoReq, &protoReply); err != nil {
 				if pbgoErr, ok := err.(pbgo.Error); ok {
 					http.Error(w, pbgoErr.Text(), pbgoErr.HttpStatus())
 					return
 				} else {
+					http.Error(w, err.Error(), http.StatusInternalServerError)
+					return
+				}
+			}
+
+			if x, ok := proto.Message(&protoReply).(interface{ Validate() error }); ok {
+				if err := x.Validate(); err != nil {
 					http.Error(w, err.Error(), http.StatusInternalServerError)
 					return
 				}
@@ -384,11 +465,25 @@ func HelloServiceHandler(svc HelloServiceInterface) http.Handler {
 				return
 			}
 
+			if x, ok := proto.Message(&protoReq).(interface{ Validate() error }); ok {
+				if err := x.Validate(); err != nil {
+					http.Error(w, err.Error(), http.StatusBadRequest)
+					return
+				}
+			}
+
 			if err := svc.Hello(&protoReq, &protoReply); err != nil {
 				if pbgoErr, ok := err.(pbgo.Error); ok {
 					http.Error(w, pbgoErr.Text(), pbgoErr.HttpStatus())
 					return
 				} else {
+					http.Error(w, err.Error(), http.StatusInternalServerError)
+					return
+				}
+			}
+
+			if x, ok := proto.Message(&protoReply).(interface{ Validate() error }); ok {
+				if err := x.Validate(); err != nil {
 					http.Error(w, err.Error(), http.StatusInternalServerError)
 					return
 				}
@@ -428,11 +523,25 @@ func HelloServiceHandler(svc HelloServiceInterface) http.Handler {
 				return
 			}
 
+			if x, ok := proto.Message(&protoReq).(interface{ Validate() error }); ok {
+				if err := x.Validate(); err != nil {
+					http.Error(w, err.Error(), http.StatusBadRequest)
+					return
+				}
+			}
+
 			if err := svc.Echo(&protoReq, &protoReply); err != nil {
 				if pbgoErr, ok := err.(pbgo.Error); ok {
 					http.Error(w, pbgoErr.Text(), pbgoErr.HttpStatus())
 					return
 				} else {
+					http.Error(w, err.Error(), http.StatusInternalServerError)
+					return
+				}
+			}
+
+			if x, ok := proto.Message(&protoReply).(interface{ Validate() error }); ok {
+				if err := x.Validate(); err != nil {
 					http.Error(w, err.Error(), http.StatusInternalServerError)
 					return
 				}
@@ -472,11 +581,25 @@ func HelloServiceHandler(svc HelloServiceInterface) http.Handler {
 				return
 			}
 
+			if x, ok := proto.Message(&protoReq).(interface{ Validate() error }); ok {
+				if err := x.Validate(); err != nil {
+					http.Error(w, err.Error(), http.StatusBadRequest)
+					return
+				}
+			}
+
 			if err := svc.Static(&protoReq, &protoReply); err != nil {
 				if pbgoErr, ok := err.(pbgo.Error); ok {
 					http.Error(w, pbgoErr.Text(), pbgoErr.HttpStatus())
 					return
 				} else {
+					http.Error(w, err.Error(), http.StatusInternalServerError)
+					return
+				}
+			}
+
+			if x, ok := proto.Message(&protoReply).(interface{ Validate() error }); ok {
+				if err := x.Validate(); err != nil {
 					http.Error(w, err.Error(), http.StatusInternalServerError)
 					return
 				}

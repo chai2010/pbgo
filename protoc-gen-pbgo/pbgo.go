@@ -237,10 +237,23 @@ func Dial{{.ServiceName}}(network, address string) (*{{.ServiceName}}Client, err
 
 {{range $_, $m := .MethodList}}
 func (p *{{$root.ServiceName}}Client) {{$m.MethodName}}(in *{{$m.InputTypeName}}) (*{{$m.OutputTypeName}}, error) {
+	if x, ok := proto.Message(in).(interface { Validate() error }); ok {
+		if err := x.Validate(); err != nil {
+			return nil, err
+		}
+	}
+
 	var out = new({{$m.OutputTypeName}})
 	if err := p.Client.Call("{{$root.ServiceName}}.{{$m.MethodName}}", in, out); err != nil {
 		return nil, err
 	}
+
+	if x, ok := proto.Message(out).(interface { Validate() error }); ok {
+		if err := x.Validate(); err != nil {
+			return nil, err
+		}
+	}
+
 	return out, nil
 }
 {{end}}
@@ -294,11 +307,25 @@ func {{.ServiceName}}Handler(svc {{.ServiceName}}Interface) http.Handler {
 						}
 					{{end}}
 
+					if x, ok := proto.Message(&protoReq).(interface { Validate() error }); ok {
+						if err := x.Validate(); err != nil {
+							http.Error(w, err.Error(), http.StatusBadRequest)
+							return
+						}
+					}
+
 					if err := svc.{{$m.MethodName}}(&protoReq, &protoReply); err != nil {
 						if pbgoErr, ok := err.(pbgo.Error); ok {
 							http.Error(w, pbgoErr.Text(), pbgoErr.HttpStatus())
 							return
 						} else {
+							http.Error(w, err.Error(), http.StatusInternalServerError)
+							return
+						}
+					}
+
+					if x, ok := proto.Message(&protoReply).(interface { Validate() error }); ok {
+						if err := x.Validate(); err != nil {
 							http.Error(w, err.Error(), http.StatusInternalServerError)
 							return
 						}
