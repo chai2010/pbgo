@@ -253,15 +253,6 @@ func HelloServiceHandler(svc HelloServiceInterface) http.Handler {
 				protoReply String
 			)
 
-			for _, fieldPath := range re.FindAllString("/hello", -1) {
-				fieldPath := strings.TrimLeft(fieldPath, ":*")
-				err := pbgo.PopulateFieldFromPath(&protoReq, fieldPath, ps.ByName(fieldPath))
-				if err != nil {
-					http.Error(w, err.Error(), http.StatusBadRequest)
-					return
-				}
-			}
-
 			if err := pbgo.PopulateQueryParameters(&protoReq, r.URL.Query()); err != nil {
 				http.Error(w, err.Error(), http.StatusBadRequest)
 				return
@@ -282,7 +273,6 @@ func HelloServiceHandler(svc HelloServiceInterface) http.Handler {
 				http.Error(w, err.Error(), http.StatusInternalServerError)
 				return
 			}
-
 		},
 	)
 
@@ -322,7 +312,6 @@ func HelloServiceHandler(svc HelloServiceInterface) http.Handler {
 				http.Error(w, err.Error(), http.StatusInternalServerError)
 				return
 			}
-
 		},
 	)
 
@@ -333,15 +322,6 @@ func HelloServiceHandler(svc HelloServiceInterface) http.Handler {
 				protoReply String
 			)
 
-			for _, fieldPath := range re.FindAllString("/hello", -1) {
-				fieldPath := strings.TrimLeft(fieldPath, ":*")
-				err := pbgo.PopulateFieldFromPath(&protoReq, fieldPath, ps.ByName(fieldPath))
-				if err != nil {
-					http.Error(w, err.Error(), http.StatusBadRequest)
-					return
-				}
-			}
-
 			if err := pbgo.PopulateQueryParameters(&protoReq, r.URL.Query()); err != nil {
 				http.Error(w, err.Error(), http.StatusBadRequest)
 				return
@@ -367,7 +347,6 @@ func HelloServiceHandler(svc HelloServiceInterface) http.Handler {
 				http.Error(w, err.Error(), http.StatusInternalServerError)
 				return
 			}
-
 		},
 	)
 
@@ -378,15 +357,6 @@ func HelloServiceHandler(svc HelloServiceInterface) http.Handler {
 				protoReply String
 			)
 
-			for _, fieldPath := range re.FindAllString("/hello", -1) {
-				fieldPath := strings.TrimLeft(fieldPath, ":*")
-				err := pbgo.PopulateFieldFromPath(&protoReq, fieldPath, ps.ByName(fieldPath))
-				if err != nil {
-					http.Error(w, err.Error(), http.StatusBadRequest)
-					return
-				}
-			}
-
 			if err := pbgo.PopulateQueryParameters(&protoReq, r.URL.Query()); err != nil {
 				http.Error(w, err.Error(), http.StatusBadRequest)
 				return
@@ -412,7 +382,6 @@ func HelloServiceHandler(svc HelloServiceInterface) http.Handler {
 				http.Error(w, err.Error(), http.StatusInternalServerError)
 				return
 			}
-
 		},
 	)
 
@@ -452,7 +421,6 @@ func HelloServiceHandler(svc HelloServiceInterface) http.Handler {
 				http.Error(w, err.Error(), http.StatusInternalServerError)
 				return
 			}
-
 		},
 	)
 
@@ -482,13 +450,12 @@ func HelloServiceHandler(svc HelloServiceInterface) http.Handler {
 				return
 			}
 
-			w.Header().Set("Content-Type", "ContentType")
+			w.Header().Set("Content-Type", protoReply.ContentType)
 
 			if _, err := w.Write(protoReply.ContentBody); err != nil {
 				http.Error(w, err.Error(), http.StatusInternalServerError)
 				return
 			}
-
 		},
 	)
 

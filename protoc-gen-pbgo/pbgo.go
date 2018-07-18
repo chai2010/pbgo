@@ -66,6 +66,7 @@ type ServiceRestMethodSpec struct {
 	ContentBody  string
 	CustomHeader string
 	RequestBody  string
+	HasPathParam bool
 }
 
 func (p *pbgoPlugin) genImportCode(file *generator.FileDescriptor) {
@@ -180,6 +181,8 @@ func (p *pbgoPlugin) buildRestMethodSpec(m *descriptor.MethodDescriptorProto) []
 			}
 			restapis[i].CustomHeader = strings.Join(ss, ".")
 		}
+
+		restapis[i].HasPathParam = strings.ContainsAny(v.Url, ":*")
 	}
 
 	sort.Slice(restapis, func(i, j int) bool {
@@ -255,14 +258,16 @@ func {{.ServiceName}}Handler(svc {{.ServiceName}}Interface) http.Handler {
 						protoReply {{$m.OutputTypeName}}
 					)
 
-					for _, fieldPath := range re.FindAllString("{{$rest.Url}}", -1) {
-						fieldPath := strings.TrimLeft(fieldPath, ":*")
-						err := pbgo.PopulateFieldFromPath(&protoReq, fieldPath, ps.ByName(fieldPath))
-						if err != nil {
-							http.Error(w, err.Error(), http.StatusBadRequest)
-							return
+					{{if $rest.HasPathParam}}
+						for _, fieldPath := range re.FindAllString("{{$rest.Url}}", -1) {
+							fieldPath := strings.TrimLeft(fieldPath, ":*")
+							err := pbgo.PopulateFieldFromPath(&protoReq, fieldPath, ps.ByName(fieldPath))
+							if err != nil {
+								http.Error(w, err.Error(), http.StatusBadRequest)
+								return
+							}
 						}
-					}
+					{{end}}
 
 					if err := pbgo.PopulateQueryParameters(&protoReq, r.URL.Query()); err != nil {
 						http.Error(w, err.Error(), http.StatusBadRequest)
@@ -299,8 +304,8 @@ func {{.ServiceName}}Handler(svc {{.ServiceName}}Interface) http.Handler {
 					{{end}}
 
 					{{if $rest.ContentType}}
-						w.Header().Set("Content-Type", "{{$rest.ContentType}}")
-					{{else}}
+						w.Header().Set("Content-Type", protoReply.{{$rest.ContentType}})
+					{{else if not $rest.ContentBody}}
 						if strings.Contains(r.Header.Get("Accept"), "application/json") {
 							w.Header().Set("Content-Type", "application/json")
 						} else {
@@ -313,12 +318,12 @@ func {{.ServiceName}}Handler(svc {{.ServiceName}}Interface) http.Handler {
 							http.Error(w, err.Error(), http.StatusInternalServerError)
 							return
 						}
-					{{else}}
+					{{- else}}
 						if err := json.NewEncoder(w).Encode(&protoReply); err != nil {
 							http.Error(w, err.Error(), http.StatusInternalServerError)
 							return
 						}
-					{{end}}
+					{{- end}}
 				},
 			)
 		{{end}}
