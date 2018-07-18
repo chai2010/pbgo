@@ -259,8 +259,13 @@ func HelloServiceHandler(svc HelloServiceInterface) http.Handler {
 			}
 
 			if err := svc.Hello(&protoReq, &protoReply); err != nil {
-				http.Error(w, err.Error(), http.StatusInternalServerError)
-				return
+				if pbgoErr, ok := err.(pbgo.Error); ok {
+					http.Error(w, pbgoErr.Text(), pbgoErr.HttpStatus())
+					return
+				} else {
+					http.Error(w, err.Error(), http.StatusInternalServerError)
+					return
+				}
 			}
 
 			if strings.Contains(r.Header.Get("Accept"), "application/json") {
@@ -298,8 +303,13 @@ func HelloServiceHandler(svc HelloServiceInterface) http.Handler {
 			}
 
 			if err := svc.Hello(&protoReq, &protoReply); err != nil {
-				http.Error(w, err.Error(), http.StatusInternalServerError)
-				return
+				if pbgoErr, ok := err.(pbgo.Error); ok {
+					http.Error(w, pbgoErr.Text(), pbgoErr.HttpStatus())
+					return
+				} else {
+					http.Error(w, err.Error(), http.StatusInternalServerError)
+					return
+				}
 			}
 
 			if strings.Contains(r.Header.Get("Accept"), "application/json") {
@@ -333,8 +343,13 @@ func HelloServiceHandler(svc HelloServiceInterface) http.Handler {
 			}
 
 			if err := svc.Hello(&protoReq, &protoReply); err != nil {
-				http.Error(w, err.Error(), http.StatusInternalServerError)
-				return
+				if pbgoErr, ok := err.(pbgo.Error); ok {
+					http.Error(w, pbgoErr.Text(), pbgoErr.HttpStatus())
+					return
+				} else {
+					http.Error(w, err.Error(), http.StatusInternalServerError)
+					return
+				}
 			}
 
 			if strings.Contains(r.Header.Get("Accept"), "application/json") {
@@ -368,8 +383,13 @@ func HelloServiceHandler(svc HelloServiceInterface) http.Handler {
 			}
 
 			if err := svc.Hello(&protoReq, &protoReply); err != nil {
-				http.Error(w, err.Error(), http.StatusInternalServerError)
-				return
+				if pbgoErr, ok := err.(pbgo.Error); ok {
+					http.Error(w, pbgoErr.Text(), pbgoErr.HttpStatus())
+					return
+				} else {
+					http.Error(w, err.Error(), http.StatusInternalServerError)
+					return
+				}
 			}
 
 			if strings.Contains(r.Header.Get("Accept"), "application/json") {
@@ -407,8 +427,13 @@ func HelloServiceHandler(svc HelloServiceInterface) http.Handler {
 			}
 
 			if err := svc.Echo(&protoReq, &protoReply); err != nil {
-				http.Error(w, err.Error(), http.StatusInternalServerError)
-				return
+				if pbgoErr, ok := err.(pbgo.Error); ok {
+					http.Error(w, pbgoErr.Text(), pbgoErr.HttpStatus())
+					return
+				} else {
+					http.Error(w, err.Error(), http.StatusInternalServerError)
+					return
+				}
 			}
 
 			if strings.Contains(r.Header.Get("Accept"), "application/json") {
@@ -446,8 +471,13 @@ func HelloServiceHandler(svc HelloServiceInterface) http.Handler {
 			}
 
 			if err := svc.Static(&protoReq, &protoReply); err != nil {
-				http.Error(w, err.Error(), http.StatusInternalServerError)
-				return
+				if pbgoErr, ok := err.(pbgo.Error); ok {
+					http.Error(w, pbgoErr.Text(), pbgoErr.HttpStatus())
+					return
+				} else {
+					http.Error(w, err.Error(), http.StatusInternalServerError)
+					return
+				}
 			}
 
 			w.Header().Set("Content-Type", protoReply.ContentType)

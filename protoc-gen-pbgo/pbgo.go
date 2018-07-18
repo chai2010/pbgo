@@ -293,8 +293,13 @@ func {{.ServiceName}}Handler(svc {{.ServiceName}}Interface) http.Handler {
 					{{end}}
 
 					if err := svc.{{$m.MethodName}}(&protoReq, &protoReply); err != nil {
-						http.Error(w, err.Error(), http.StatusInternalServerError)
-						return
+						if pbgoErr, ok := err.(pbgo.Error); ok {
+							http.Error(w, pbgoErr.Text(), pbgoErr.HttpStatus())
+							return
+						} else {
+							http.Error(w, err.Error(), http.StatusInternalServerError)
+							return
+						}
 					}
 
 					{{if $rest.CustomHeader}}
