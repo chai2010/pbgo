@@ -70,6 +70,7 @@ type ServiceRestMethodSpec struct {
 }
 
 func (p *pbgoPlugin) genImportCode(file *generator.FileDescriptor) {
+	p.P(`import "context"`)
 	p.P(`import "encoding/json"`)
 	p.P(`import "io"`)
 	p.P(`import "io/ioutil"`)
@@ -84,6 +85,7 @@ func (p *pbgoPlugin) genImportCode(file *generator.FileDescriptor) {
 
 func (p *pbgoPlugin) genReferenceImportCode(file *generator.FileDescriptor) {
 	p.P("// Reference imports to suppress errors if they are not otherwise used.")
+	p.P("var _ = context.Background")
 	p.P("var _ = json.Marshal")
 	p.P("var _ = http.ListenAndServe")
 	p.P("var _ = io.EOF")
@@ -114,6 +116,9 @@ func (p *pbgoPlugin) buildServiceSpec(svc *descriptor.ServiceDescriptorProto) *S
 	}
 
 	for _, m := range svc.Method {
+		if m.GetClientStreaming() || m.GetServerStreaming() {
+			continue
+		}
 		spec.MethodList = append(spec.MethodList, ServiceMethodSpec{
 			MethodName:     generator.CamelCase(m.GetName()),
 			InputTypeName:  p.TypeName(p.ObjectNamed(m.GetInputType())),
@@ -213,6 +218,12 @@ const tmplService = `
 type {{.ServiceName}}Interface interface {
 	{{- range $_, $m := .MethodList}}
 		{{$m.MethodName}}(in *{{$m.InputTypeName}}, out *{{$m.OutputTypeName}}) error
+	{{- end}}
+}
+
+type {{.ServiceName}}GrpcServerInterface interface {
+	{{- range $_, $m := .MethodList}}
+		{{$m.MethodName}}(ctx context.Context, in *{{$m.InputTypeName}}) (out *{{$m.OutputTypeName}}, err error)
 	{{- end}}
 }
 
@@ -415,5 +426,9 @@ func {{.ServiceName}}Handler(svc {{.ServiceName}}Interface) http.Handler {
 	{{end}}
 
 	return router
+}
+
+func {{.ServiceName}}GrpcHandler(ctx context.Context, svc {{.ServiceName}}Interface) http.Handler {
+	panic("TODO")
 }
 `

@@ -6,7 +6,7 @@ GOPATH:=$(shell go env GOPATH)
 
 default:
 	go install github.com/chai2010/pbgo/protoc-gen-pbgo
-	protoc -I=. -I=$(GOPATH)/src --pbgo_out=. hello.proto
+	protoc -I=. -I=../../ --pbgo_out=. hello.proto
 	go fmt && go vet && go test
 
 clean:

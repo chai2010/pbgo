@@ -6,7 +6,7 @@ syntax = "proto3";
 
 package hello_pb;
 
-import "github.com/chai2010/pbgo/pbgo.proto";
+import "pbgo.proto";
 
 message String {
 	string value = 1;
@@ -52,4 +52,8 @@ service HelloService {
 			}
 		};
 	}
+
+	rpc ServerStream(String) returns (stream String);
+	rpc ClientStream(stream String) returns (String);
+	rpc Channel(stream String) returns (stream String);
 }
