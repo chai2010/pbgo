@@ -221,7 +221,7 @@ type {{.ServiceName}}Interface interface {
 	{{- end}}
 }
 
-type {{.ServiceName}}GrpcServerInterface interface {
+type {{.ServiceName}}GrpcInterface interface {
 	{{- range $_, $m := .MethodList}}
 		{{$m.MethodName}}(ctx context.Context, in *{{$m.InputTypeName}}) (out *{{$m.OutputTypeName}}, err error)
 	{{- end}}
@@ -428,7 +428,112 @@ func {{.ServiceName}}Handler(svc {{.ServiceName}}Interface) http.Handler {
 	return router
 }
 
-func {{.ServiceName}}GrpcHandler(ctx context.Context, svc {{.ServiceName}}Interface) http.Handler {
-	panic("TODO")
+func {{.ServiceName}}GrpcHandler(ctx context.Context, svc {{.ServiceName}}GrpcInterface) http.Handler {
+	var router = httprouter.New()
+
+	var re = regexp.MustCompile("(\\*|\\:)(\\w|\\.)+")
+	_ = re
+
+	{{range $_, $m := .MethodList}}
+		{{range $_, $rest := .RestAPIs}}
+			router.Handle("{{$rest.Method}}", "{{$rest.Url}}",
+				func(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+					var (
+						protoReq   {{$m.InputTypeName}}
+						protoReply *{{$m.OutputTypeName}}
+						err        error
+					)
+
+					{{if $rest.HasPathParam}}
+						for _, fieldPath := range re.FindAllString("{{$rest.Url}}", -1) {
+							fieldPath := strings.TrimLeft(fieldPath, ":*")
+							err := pbgo.PopulateFieldFromPath(&protoReq, fieldPath, ps.ByName(fieldPath))
+							if err != nil {
+								http.Error(w, err.Error(), http.StatusBadRequest)
+								return
+							}
+						}
+					{{end}}
+
+					if err := pbgo.PopulateQueryParameters(&protoReq, r.URL.Query()); err != nil {
+						http.Error(w, err.Error(), http.StatusBadRequest)
+						return
+					}
+
+					{{if $rest.RequestBody}}
+						rBody, err := ioutil.ReadAll(r.Body)
+						if err != nil {
+							http.Error(w, err.Error(), http.StatusBadRequest)
+							return
+						}
+						err := pbgo.PopulateFieldFromPath(&protoReq, "{{$rest.RequestBody}}", string(rBody))
+						if err != nil {
+							http.Error(w, err.Error(), http.StatusBadRequest)
+							return
+						}
+					{{else if or (eq "POST" $rest.Method) (eq "PUT" $rest.Method) (eq "PATCH" $rest.Method)}}
+						if err := json.NewDecoder(r.Body).Decode(&protoReq); err != nil && err != io.EOF {
+							http.Error(w, err.Error(), http.StatusBadRequest)
+							return
+						}
+					{{end}}
+
+					if x, ok := proto.Message(&protoReq).(interface { Validate() error }); ok {
+						if err := x.Validate(); err != nil {
+							http.Error(w, err.Error(), http.StatusBadRequest)
+							return
+						}
+					}
+
+					if protoReply, err = svc.{{$m.MethodName}}(ctx, &protoReq); err != nil {
+						if pbgoErr, ok := err.(pbgo.Error); ok {
+							http.Error(w, pbgoErr.Text(), pbgoErr.HttpStatus())
+							return
+						} else {
+							http.Error(w, err.Error(), http.StatusInternalServerError)
+							return
+						}
+					}
+
+					if x, ok := proto.Message(protoReply).(interface { Validate() error }); ok {
+						if err := x.Validate(); err != nil {
+							http.Error(w, err.Error(), http.StatusInternalServerError)
+							return
+						}
+					}
+
+					{{if $rest.CustomHeader}}
+						for k, v := range protoReply.{{$rest.CustomHeader}} {
+							w.Header().Set(k, v)
+						}
+					{{end}}
+
+					{{if $rest.ContentType}}
+						w.Header().Set("Content-Type", protoReply.{{$rest.ContentType}})
+					{{else if not $rest.ContentBody}}
+						if strings.Contains(r.Header.Get("Accept"), "application/json") {
+							w.Header().Set("Content-Type", "application/json")
+						} else {
+							w.Header().Set("Content-Type", "text/plain")
+						}
+					{{end}}
+
+					{{if $rest.ContentBody}}
+						if _, err := w.Write(protoReply.{{$rest.ContentBody}}); err != nil {
+							http.Error(w, err.Error(), http.StatusInternalServerError)
+							return
+						}
+					{{- else}}
+						if err := json.NewEncoder(w).Encode(&protoReply); err != nil {
+							http.Error(w, err.Error(), http.StatusInternalServerError)
+							return
+						}
+					{{- end}}
+				},
+			)
+		{{end}}
+	{{end}}
+
+	return router
 }
 `
