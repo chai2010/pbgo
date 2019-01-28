@@ -7,3 +7,5 @@
 *.dll
 
 a.out
+
+/_output

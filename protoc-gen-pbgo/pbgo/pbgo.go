@@ -2,7 +2,10 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
-package main
+// Package pbgo outputs pbgo service descriptions in Go code.
+// It runs as a plugin for the Go protocol buffer compiler plugin.
+// It is linked in to protoc-gen-go.
+package pbgo
 
 import (
 	"bytes"
@@ -18,7 +21,7 @@ import (
 	"github.com/chai2010/pbgo"
 )
 
-const pbgoPluginName = "pbgo"
+const PluginName = "pbgo"
 
 func init() {
 	generator.RegisterPlugin(new(pbgoPlugin))
@@ -26,7 +29,7 @@ func init() {
 
 type pbgoPlugin struct{ *generator.Generator }
 
-func (p *pbgoPlugin) Name() string                { return pbgoPluginName }
+func (p *pbgoPlugin) Name() string                { return PluginName }
 func (p *pbgoPlugin) Init(g *generator.Generator) { p.Generator = g }
 
 func (p *pbgoPlugin) GenerateImports(file *generator.FileDescriptor) {
@@ -115,6 +118,12 @@ func (p *pbgoPlugin) buildServiceSpec(svc *descriptor.ServiceDescriptorProto) *S
 		ServiceName: generator.CamelCase(svc.GetName()),
 	}
 
+	if svcOpt := p.getServiceOption(svc); svcOpt != nil {
+		if s := strings.TrimSpace(svcOpt.Rename); s != "" {
+			spec.ServiceName = s
+		}
+	}
+
 	for _, m := range svc.Method {
 		if m.GetClientStreaming() || m.GetServerStreaming() {
 			continue
@@ -201,6 +210,16 @@ func (p *pbgoPlugin) buildRestMethodSpec(m *descriptor.MethodDescriptorProto) []
 	return restapis
 }
 
+func (p *pbgoPlugin) getServiceOption(m *descriptor.ServiceDescriptorProto) *pbgo.ServiceOptions {
+	if m.Options != nil && proto.HasExtension(m.Options, pbgo.E_ServiceOpt) {
+		if ext, _ := proto.GetExtension(m.Options, pbgo.E_ServiceOpt); ext != nil {
+			if x, _ := ext.(*pbgo.ServiceOptions); x != nil {
+				return x
+			}
+		}
+	}
+	return nil
+}
 func (p *pbgoPlugin) getServiceMethodOption(m *descriptor.MethodDescriptorProto) *pbgo.HttpRule {
 	if m.Options != nil && proto.HasExtension(m.Options, pbgo.E_RestApi) {
 		if ext, _ := proto.GetExtension(m.Options, pbgo.E_RestApi); ext != nil {

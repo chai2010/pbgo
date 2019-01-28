@@ -5,7 +5,10 @@
 GOPATH:=$(shell go env GOPATH)
 
 default:
-	protoc -I. --go_out=$(GOPATH)/src pbgo.proto
+	mkdir -p ./_output
+	go run makestatic.go
+	protoc -I. --go_out=./_output pbgo.proto
+	cp ./_output/github.com/chai2010/pbgo/pbgo.pb.go .
 	go vet && go test
 
 vgo_test:
