@@ -239,6 +239,10 @@ $ curl localhost:8080/static/gopher.png
 $ curl localhost:8080/static/hello.txt
 ```
 
+## gRPC & Rest Example
+
+See https://github.com/chai2010/pbgo-examples
+
 ## BUGS
 
 Report bugs to <chaishushan@gmail.com>.
