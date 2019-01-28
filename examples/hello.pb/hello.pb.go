@@ -759,7 +759,10 @@ func HelloServiceHandler(svc HelloServiceInterface) net_http.Handler {
 	return router
 }
 
-func HelloServiceGrpcHandler(ctx context.Context, svc HelloServiceGrpcInterface) net_http.Handler {
+func HelloServiceGrpcHandler(
+	ctx context.Context, svc HelloServiceGrpcInterface,
+	annotateContext func(ctx context.Context, req *net_http.Request) (context.Context, error),
+) net_http.Handler {
 	var router = github_com_julienschmidt_httprouter.New()
 
 	var re = regexp.MustCompile("(\\*|\\:)(\\w|\\.)+")
@@ -780,6 +783,15 @@ func HelloServiceGrpcHandler(ctx context.Context, svc HelloServiceGrpcInterface)
 
 			if x, ok := proto.Message(&protoReq).(interface{ Validate() error }); ok {
 				if err := x.Validate(); err != nil {
+					net_http.Error(w, err.Error(), net_http.StatusBadRequest)
+					return
+				}
+			}
+
+			if annotateContext != nil {
+				var err error
+				ctx, err = annotateContext(ctx, r)
+				if err != nil {
 					net_http.Error(w, err.Error(), net_http.StatusBadRequest)
 					return
 				}
@@ -844,6 +856,15 @@ func HelloServiceGrpcHandler(ctx context.Context, svc HelloServiceGrpcInterface)
 				}
 			}
 
+			if annotateContext != nil {
+				var err error
+				ctx, err = annotateContext(ctx, r)
+				if err != nil {
+					net_http.Error(w, err.Error(), net_http.StatusBadRequest)
+					return
+				}
+			}
+
 			if protoReply, err = svc.Hello(ctx, &protoReq); err != nil {
 				if pbgoErr, ok := err.(github_com_chai2010_pbgo.Error); ok {
 					net_http.Error(w, pbgoErr.Text(), pbgoErr.HttpStatus())
@@ -899,6 +920,15 @@ func HelloServiceGrpcHandler(ctx context.Context, svc HelloServiceGrpcInterface)
 				}
 			}
 
+			if annotateContext != nil {
+				var err error
+				ctx, err = annotateContext(ctx, r)
+				if err != nil {
+					net_http.Error(w, err.Error(), net_http.StatusBadRequest)
+					return
+				}
+			}
+
 			if protoReply, err = svc.Hello(ctx, &protoReq); err != nil {
 				if pbgoErr, ok := err.(github_com_chai2010_pbgo.Error); ok {
 					net_http.Error(w, pbgoErr.Text(), pbgoErr.HttpStatus())
@@ -949,6 +979,15 @@ func HelloServiceGrpcHandler(ctx context.Context, svc HelloServiceGrpcInterface)
 
 			if x, ok := proto.Message(&protoReq).(interface{ Validate() error }); ok {
 				if err := x.Validate(); err != nil {
+					net_http.Error(w, err.Error(), net_http.StatusBadRequest)
+					return
+				}
+			}
+
+			if annotateContext != nil {
+				var err error
+				ctx, err = annotateContext(ctx, r)
+				if err != nil {
 					net_http.Error(w, err.Error(), net_http.StatusBadRequest)
 					return
 				}
@@ -1013,6 +1052,15 @@ func HelloServiceGrpcHandler(ctx context.Context, svc HelloServiceGrpcInterface)
 				}
 			}
 
+			if annotateContext != nil {
+				var err error
+				ctx, err = annotateContext(ctx, r)
+				if err != nil {
+					net_http.Error(w, err.Error(), net_http.StatusBadRequest)
+					return
+				}
+			}
+
 			if protoReply, err = svc.Echo(ctx, &protoReq); err != nil {
 				if pbgoErr, ok := err.(github_com_chai2010_pbgo.Error); ok {
 					net_http.Error(w, pbgoErr.Text(), pbgoErr.HttpStatus())
@@ -1067,6 +1115,15 @@ func HelloServiceGrpcHandler(ctx context.Context, svc HelloServiceGrpcInterface)
 
 			if x, ok := proto.Message(&protoReq).(interface{ Validate() error }); ok {
 				if err := x.Validate(); err != nil {
+					net_http.Error(w, err.Error(), net_http.StatusBadRequest)
+					return
+				}
+			}
+
+			if annotateContext != nil {
+				var err error
+				ctx, err = annotateContext(ctx, r)
+				if err != nil {
 					net_http.Error(w, err.Error(), net_http.StatusBadRequest)
 					return
 				}

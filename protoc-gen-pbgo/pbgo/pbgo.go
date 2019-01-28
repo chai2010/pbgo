@@ -497,7 +497,10 @@ func {{.ServiceName}}Handler(svc {{.ServiceName}}Interface) {{httpPkg}}.Handler 
 	return router
 }
 
-func {{.ServiceName}}GrpcHandler(ctx {{contextPkg}}.Context, svc {{.ServiceName}}GrpcInterface) {{httpPkg}}.Handler {
+func {{.ServiceName}}GrpcHandler(
+	ctx {{contextPkg}}.Context, svc {{.ServiceName}}GrpcInterface,
+	annotateContext func(ctx {{contextPkg}}.Context, req *{{httpPkg}}.Request) ({{contextPkg}}.Context, error),
+) {{httpPkg}}.Handler {
 	var router = {{httprouterPkg}}.New()
 
 	var re = {{regexpPkg}}.MustCompile("(\\*|\\:)(\\w|\\.)+")
@@ -549,6 +552,15 @@ func {{.ServiceName}}GrpcHandler(ctx {{contextPkg}}.Context, svc {{.ServiceName}
 
 					if x, ok := proto.Message(&protoReq).(interface { Validate() error }); ok {
 						if err := x.Validate(); err != nil {
+							{{httpPkg}}.Error(w, err.Error(), {{httpPkg}}.StatusBadRequest)
+							return
+						}
+					}
+
+					if annotateContext != nil {
+						var err error
+						ctx, err = annotateContext(ctx, r)
+						if err != nil {
 							{{httpPkg}}.Error(w, err.Error(), {{httpPkg}}.StatusBadRequest)
 							return
 						}
