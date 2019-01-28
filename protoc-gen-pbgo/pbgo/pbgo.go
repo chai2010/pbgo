@@ -10,6 +10,7 @@ package pbgo
 import (
 	"bytes"
 	"log"
+	"path"
 	"sort"
 	"strings"
 	"text/template"
@@ -27,15 +28,47 @@ func init() {
 	generator.RegisterPlugin(new(pbgoPlugin))
 }
 
-type pbgoPlugin struct{ *generator.Generator }
+type pbgoPlugin struct {
+	*generator.Generator
 
-func (p *pbgoPlugin) Name() string                { return PluginName }
-func (p *pbgoPlugin) Init(g *generator.Generator) { p.Generator = g }
+	contextPkg string
+	jsonPkg    string
+	ioPkg      string
+	ioutilPkg  string
+	httpPkg    string
+	rpcPkg     string
+	regexpPkg  string
+	stringsPkg string
+
+	pbgoPkg       string
+	httprouterPkg string
+}
+
+func (p *pbgoPlugin) Name() string {
+	return PluginName
+}
+
+func (p *pbgoPlugin) Init(g *generator.Generator) {
+	p.Generator = g
+
+	p.contextPkg = string(generator.RegisterUniquePackageName("context", nil))
+	p.jsonPkg = string(generator.RegisterUniquePackageName("encoding/json", nil))
+	p.ioPkg = string(generator.RegisterUniquePackageName("io", nil))
+	p.ioutilPkg = string(generator.RegisterUniquePackageName("io/ioutil", nil))
+	p.httpPkg = string(generator.RegisterUniquePackageName("net/http", nil))
+	p.rpcPkg = string(generator.RegisterUniquePackageName("net/rpc", nil))
+	p.regexpPkg = string(generator.RegisterUniquePackageName("regexp", nil))
+	p.stringsPkg = string(generator.RegisterUniquePackageName("strings", nil))
+
+	p.pbgoPkg = string(generator.RegisterUniquePackageName("github.com/chai2010/pbgo", nil))
+	p.httprouterPkg = string(generator.RegisterUniquePackageName("github.com/julienschmidt/httprouter", nil))
+}
 
 func (p *pbgoPlugin) GenerateImports(file *generator.FileDescriptor) {
 	if len(file.Service) == 0 {
 		return
 	}
+
 	p.genImportCode(file)
 }
 
@@ -73,38 +106,55 @@ type ServiceRestMethodSpec struct {
 }
 
 func (p *pbgoPlugin) genImportCode(file *generator.FileDescriptor) {
-	p.P(`import "context"`)
-	p.P(`import "encoding/json"`)
-	p.P(`import "io"`)
-	p.P(`import "io/ioutil"`)
-	p.P(`import "net/rpc"`)
-	p.P(`import "net/http"`)
-	p.P(`import "regexp"`)
-	p.P(`import "strings"`)
+	p.P("import (")
+	p.P(p.contextPkg, " ", generator.GoImportPath(path.Join(string(p.ImportPrefix), "context")))
+	p.P(p.jsonPkg, " ", generator.GoImportPath(path.Join(string(p.ImportPrefix), "encoding/json")))
+	p.P(p.ioPkg, " ", generator.GoImportPath(path.Join(string(p.ImportPrefix), "io")))
+	p.P(p.ioutilPkg, " ", generator.GoImportPath(path.Join(string(p.ImportPrefix), "io/ioutil")))
+	p.P(p.httpPkg, " ", generator.GoImportPath(path.Join(string(p.ImportPrefix), "net/http")))
+	p.P(p.rpcPkg, " ", generator.GoImportPath(path.Join(string(p.ImportPrefix), "net/rpc")))
+	p.P(p.regexpPkg, " ", generator.GoImportPath(path.Join(string(p.ImportPrefix), "regexp")))
+	p.P(p.stringsPkg, " ", generator.GoImportPath(path.Join(string(p.ImportPrefix), "strings")))
 	p.P()
-	p.P(`import "github.com/chai2010/pbgo"`)
-	p.P(`import "github.com/julienschmidt/httprouter"`)
+	p.P(p.pbgoPkg, " ", generator.GoImportPath(path.Join(string(p.ImportPrefix), "github.com/chai2010/pbgo")))
+	p.P(p.httprouterPkg, " ", generator.GoImportPath(path.Join(string(p.ImportPrefix), "github.com/julienschmidt/httprouter")))
+	p.P(")")
 }
 
 func (p *pbgoPlugin) genReferenceImportCode(file *generator.FileDescriptor) {
 	p.P("// Reference imports to suppress errors if they are not otherwise used.")
-	p.P("var _ = context.Background")
-	p.P("var _ = json.Marshal")
-	p.P("var _ = http.ListenAndServe")
-	p.P("var _ = io.EOF")
-	p.P("var _ = ioutil.ReadAll")
-	p.P("var _ = regexp.Match")
-	p.P("var _ = strings.Split")
-	p.P("var _ = pbgo.PopulateFieldFromPath")
-	p.P("var _ = httprouter.New")
+	p.P("var _ = ", p.contextPkg, ".Background")
+	p.P("var _ = ", p.jsonPkg, ".Marshal")
+	p.P("var _ = ", p.rpcPkg, ".Server{}")
+	p.P("var _ = ", p.httpPkg, ".ListenAndServe")
+	p.P("var _ = ", p.ioPkg, ".EOF")
+	p.P("var _ = ", p.ioutilPkg, ".ReadAll")
+	p.P("var _ = ", p.regexpPkg, ".Match")
+	p.P("var _ = ", p.stringsPkg, ".Split")
+	p.P("var _ = ", p.pbgoPkg, ".PopulateFieldFromPath")
+	p.P("var _ = ", p.httprouterPkg, ".New")
 	p.P()
 }
 
 func (p *pbgoPlugin) genServiceCode(svc *descriptor.ServiceDescriptorProto) {
 	spec := p.buildServiceSpec(svc)
 
+	var fnMap = template.FuncMap{
+		"contextPkg": func() string { return p.contextPkg },
+		"jsonPkg":    func() string { return p.jsonPkg },
+		"ioPkg":      func() string { return p.ioPkg },
+		"ioutilPkg":  func() string { return p.ioutilPkg },
+		"rpcPkg":     func() string { return p.rpcPkg },
+		"httpPkg":    func() string { return p.httpPkg },
+		"regexpPkg":  func() string { return p.regexpPkg },
+		"stringsPkg": func() string { return p.stringsPkg },
+
+		"pbgoPkg":       func() string { return p.pbgoPkg },
+		"httprouterPkg": func() string { return p.httprouterPkg },
+	}
+
 	var buf bytes.Buffer
-	t := template.Must(template.New("").Parse(tmplService))
+	t := template.Must(template.New("").Funcs(fnMap).Parse(tmplService))
 	err := t.Execute(&buf, spec)
 	if err != nil {
 		log.Fatal(err)
@@ -242,11 +292,11 @@ type {{.ServiceName}}Interface interface {
 
 type {{.ServiceName}}GrpcInterface interface {
 	{{- range $_, $m := .MethodList}}
-		{{$m.MethodName}}(ctx context.Context, in *{{$m.InputTypeName}}) (out *{{$m.OutputTypeName}}, err error)
+		{{$m.MethodName}}(ctx {{contextPkg}}.Context, in *{{$m.InputTypeName}}) (out *{{$m.OutputTypeName}}, err error)
 	{{- end}}
 }
 
-func Register{{.ServiceName}}(srv *rpc.Server, x {{.ServiceName}}Interface) error {
+func Register{{.ServiceName}}(srv *{{rpcPkg}}.Server, x {{.ServiceName}}Interface) error {
 	if _, ok := x.(*{{.ServiceName}}Validator); !ok {
 		x = &{{.ServiceName}}Validator{ {{.ServiceName}}Interface: x }
 	}
@@ -284,11 +334,11 @@ func (p *{{$root.ServiceName}}Validator) {{$m.MethodName}}(in *{{$m.InputTypeNam
 {{end}}
 
 type {{.ServiceName}}Client struct {
-	*rpc.Client
+	*{{rpcPkg}}.Client
 }
 
 func Dial{{.ServiceName}}(network, address string) (*{{.ServiceName}}Client, error) {
-	c, err := rpc.Dial(network, address)
+	c, err := {{rpcPkg}}.Dial(network, address)
 	if err != nil {
 		return nil, err
 	}
@@ -316,15 +366,15 @@ func (p *{{$root.ServiceName}}Client) {{$m.MethodName}}(in *{{$m.InputTypeName}}
 
 	return out, nil
 }
-func (p *{{$root.ServiceName}}Client) Async{{$m.MethodName}}(in *{{$m.InputTypeName}}, out *{{$m.OutputTypeName}}, done chan *rpc.Call) *rpc.Call {
+func (p *{{$root.ServiceName}}Client) Async{{$m.MethodName}}(in *{{$m.InputTypeName}}, out *{{$m.OutputTypeName}}, done chan *{{rpcPkg}}.Call) *{{rpcPkg}}.Call {
 	if x, ok := proto.Message(in).(interface { Validate() error }); ok {
 		if err := x.Validate(); err != nil {
-			call := &rpc.Call{
+			call := &{{rpcPkg}}.Call{
 				ServiceMethod: "{{$root.ServiceName}}.{{$m.MethodName}}",
 				Args:          in,
 				Reply:         out,
 				Error:         err,
-				Done:          make(chan *rpc.Call, 10),
+				Done:          make(chan *{{rpcPkg}}.Call, 10),
 			}
 			call.Done <- call
 			return call
@@ -339,16 +389,16 @@ func (p *{{$root.ServiceName}}Client) Async{{$m.MethodName}}(in *{{$m.InputTypeN
 }
 {{end}}
 
-func {{.ServiceName}}Handler(svc {{.ServiceName}}Interface) http.Handler {
-	var router = httprouter.New()
+func {{.ServiceName}}Handler(svc {{.ServiceName}}Interface) {{httpPkg}}.Handler {
+	var router = {{httprouterPkg}}.New()
 
-	var re = regexp.MustCompile("(\\*|\\:)(\\w|\\.)+")
+	var re = {{regexpPkg}}.MustCompile("(\\*|\\:)(\\w|\\.)+")
 	_ = re
 
 	{{range $_, $m := .MethodList}}
 		{{range $_, $rest := .RestAPIs}}
 			router.Handle("{{$rest.Method}}", "{{$rest.Url}}",
-				func(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+				func(w {{httpPkg}}.ResponseWriter, r *{{httpPkg}}.Request, ps {{httprouterPkg}}.Params) {
 					var (
 						protoReq   {{$m.InputTypeName}}
 						protoReply {{$m.OutputTypeName}}
@@ -356,58 +406,58 @@ func {{.ServiceName}}Handler(svc {{.ServiceName}}Interface) http.Handler {
 
 					{{if $rest.HasPathParam}}
 						for _, fieldPath := range re.FindAllString("{{$rest.Url}}", -1) {
-							fieldPath := strings.TrimLeft(fieldPath, ":*")
-							err := pbgo.PopulateFieldFromPath(&protoReq, fieldPath, ps.ByName(fieldPath))
+							fieldPath := {{stringsPkg}}.TrimLeft(fieldPath, ":*")
+							err := {{pbgoPkg}}.PopulateFieldFromPath(&protoReq, fieldPath, ps.ByName(fieldPath))
 							if err != nil {
-								http.Error(w, err.Error(), http.StatusBadRequest)
+								{{httpPkg}}.Error(w, err.Error(), {{httpPkg}}.StatusBadRequest)
 								return
 							}
 						}
 					{{end}}
 
-					if err := pbgo.PopulateQueryParameters(&protoReq, r.URL.Query()); err != nil {
-						http.Error(w, err.Error(), http.StatusBadRequest)
+					if err := {{pbgoPkg}}.PopulateQueryParameters(&protoReq, r.URL.Query()); err != nil {
+						{{httpPkg}}.Error(w, err.Error(), {{httpPkg}}.StatusBadRequest)
 						return
 					}
 
 					{{if $rest.RequestBody}}
-						rBody, err := ioutil.ReadAll(r.Body)
+						rBody, err := {{ioutilPkg}}.ReadAll(r.Body)
 						if err != nil {
-							http.Error(w, err.Error(), http.StatusBadRequest)
+							{{httpPkg}}.Error(w, err.Error(), {{httpPkg}}.StatusBadRequest)
 							return
 						}
-						err := pbgo.PopulateFieldFromPath(&protoReq, "{{$rest.RequestBody}}", string(rBody))
+						err := {{pbgoPkg}}.PopulateFieldFromPath(&protoReq, "{{$rest.RequestBody}}", string(rBody))
 						if err != nil {
-							http.Error(w, err.Error(), http.StatusBadRequest)
+							{{httpPkg}}.Error(w, err.Error(), {{httpPkg}}.StatusBadRequest)
 							return
 						}
 					{{else if or (eq "POST" $rest.Method) (eq "PUT" $rest.Method) (eq "PATCH" $rest.Method)}}
-						if err := json.NewDecoder(r.Body).Decode(&protoReq); err != nil && err != io.EOF {
-							http.Error(w, err.Error(), http.StatusBadRequest)
+						if err := {{jsonPkg}}.NewDecoder(r.Body).Decode(&protoReq); err != nil && err != {{ioPkg}}.EOF {
+							{{httpPkg}}.Error(w, err.Error(), {{httpPkg}}.StatusBadRequest)
 							return
 						}
 					{{end}}
 
 					if x, ok := proto.Message(&protoReq).(interface { Validate() error }); ok {
 						if err := x.Validate(); err != nil {
-							http.Error(w, err.Error(), http.StatusBadRequest)
+							{{httpPkg}}.Error(w, err.Error(), {{httpPkg}}.StatusBadRequest)
 							return
 						}
 					}
 
 					if err := svc.{{$m.MethodName}}(&protoReq, &protoReply); err != nil {
-						if pbgoErr, ok := err.(pbgo.Error); ok {
-							http.Error(w, pbgoErr.Text(), pbgoErr.HttpStatus())
+						if pbgoErr, ok := err.({{pbgoPkg}}.Error); ok {
+							{{httpPkg}}.Error(w, pbgoErr.Text(), pbgoErr.HttpStatus())
 							return
 						} else {
-							http.Error(w, err.Error(), http.StatusInternalServerError)
+							{{httpPkg}}.Error(w, err.Error(), {{httpPkg}}.StatusInternalServerError)
 							return
 						}
 					}
 
 					if x, ok := proto.Message(&protoReply).(interface { Validate() error }); ok {
 						if err := x.Validate(); err != nil {
-							http.Error(w, err.Error(), http.StatusInternalServerError)
+							{{httpPkg}}.Error(w, err.Error(), {{httpPkg}}.StatusInternalServerError)
 							return
 						}
 					}
@@ -421,7 +471,7 @@ func {{.ServiceName}}Handler(svc {{.ServiceName}}Interface) http.Handler {
 					{{if $rest.ContentType}}
 						w.Header().Set("Content-Type", protoReply.{{$rest.ContentType}})
 					{{else if not $rest.ContentBody}}
-						if strings.Contains(r.Header.Get("Accept"), "application/json") {
+						if {{stringsPkg}}.Contains(r.Header.Get("Accept"), "application/json") {
 							w.Header().Set("Content-Type", "application/json")
 						} else {
 							w.Header().Set("Content-Type", "text/plain")
@@ -430,12 +480,12 @@ func {{.ServiceName}}Handler(svc {{.ServiceName}}Interface) http.Handler {
 
 					{{if $rest.ContentBody}}
 						if _, err := w.Write(protoReply.{{$rest.ContentBody}}); err != nil {
-							http.Error(w, err.Error(), http.StatusInternalServerError)
+							{{httpPkg}}.Error(w, err.Error(), {{httpPkg}}.StatusInternalServerError)
 							return
 						}
 					{{- else}}
-						if err := json.NewEncoder(w).Encode(&protoReply); err != nil {
-							http.Error(w, err.Error(), http.StatusInternalServerError)
+						if err := {{jsonPkg}}.NewEncoder(w).Encode(&protoReply); err != nil {
+							{{httpPkg}}.Error(w, err.Error(), {{httpPkg}}.StatusInternalServerError)
 							return
 						}
 					{{- end}}
@@ -447,16 +497,16 @@ func {{.ServiceName}}Handler(svc {{.ServiceName}}Interface) http.Handler {
 	return router
 }
 
-func {{.ServiceName}}GrpcHandler(ctx context.Context, svc {{.ServiceName}}GrpcInterface) http.Handler {
-	var router = httprouter.New()
+func {{.ServiceName}}GrpcHandler(ctx {{contextPkg}}.Context, svc {{.ServiceName}}GrpcInterface) {{httpPkg}}.Handler {
+	var router = {{httprouterPkg}}.New()
 
-	var re = regexp.MustCompile("(\\*|\\:)(\\w|\\.)+")
+	var re = {{regexpPkg}}.MustCompile("(\\*|\\:)(\\w|\\.)+")
 	_ = re
 
 	{{range $_, $m := .MethodList}}
 		{{range $_, $rest := .RestAPIs}}
 			router.Handle("{{$rest.Method}}", "{{$rest.Url}}",
-				func(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+				func(w {{httpPkg}}.ResponseWriter, r *{{httpPkg}}.Request, ps {{httprouterPkg}}.Params) {
 					var (
 						protoReq   {{$m.InputTypeName}}
 						protoReply *{{$m.OutputTypeName}}
@@ -465,58 +515,58 @@ func {{.ServiceName}}GrpcHandler(ctx context.Context, svc {{.ServiceName}}GrpcIn
 
 					{{if $rest.HasPathParam}}
 						for _, fieldPath := range re.FindAllString("{{$rest.Url}}", -1) {
-							fieldPath := strings.TrimLeft(fieldPath, ":*")
-							err := pbgo.PopulateFieldFromPath(&protoReq, fieldPath, ps.ByName(fieldPath))
+							fieldPath := {{stringsPkg}}.TrimLeft(fieldPath, ":*")
+							err := {{pbgoPkg}}.PopulateFieldFromPath(&protoReq, fieldPath, ps.ByName(fieldPath))
 							if err != nil {
-								http.Error(w, err.Error(), http.StatusBadRequest)
+								{{httpPkg}}.Error(w, err.Error(), {{httpPkg}}.StatusBadRequest)
 								return
 							}
 						}
 					{{end}}
 
-					if err := pbgo.PopulateQueryParameters(&protoReq, r.URL.Query()); err != nil {
-						http.Error(w, err.Error(), http.StatusBadRequest)
+					if err := {{pbgoPkg}}.PopulateQueryParameters(&protoReq, r.URL.Query()); err != nil {
+						{{httpPkg}}.Error(w, err.Error(), {{httpPkg}}.StatusBadRequest)
 						return
 					}
 
 					{{if $rest.RequestBody}}
-						rBody, err := ioutil.ReadAll(r.Body)
+						rBody, err := {{ioutilPkg}}.ReadAll(r.Body)
 						if err != nil {
-							http.Error(w, err.Error(), http.StatusBadRequest)
+							{{httpPkg}}.Error(w, err.Error(), {{httpPkg}}.StatusBadRequest)
 							return
 						}
-						err := pbgo.PopulateFieldFromPath(&protoReq, "{{$rest.RequestBody}}", string(rBody))
+						err := {{pbgoPkg}}.PopulateFieldFromPath(&protoReq, "{{$rest.RequestBody}}", string(rBody))
 						if err != nil {
-							http.Error(w, err.Error(), http.StatusBadRequest)
+							{{httpPkg}}.Error(w, err.Error(), {{httpPkg}}.StatusBadRequest)
 							return
 						}
 					{{else if or (eq "POST" $rest.Method) (eq "PUT" $rest.Method) (eq "PATCH" $rest.Method)}}
-						if err := json.NewDecoder(r.Body).Decode(&protoReq); err != nil && err != io.EOF {
-							http.Error(w, err.Error(), http.StatusBadRequest)
+						if err := {{jsonPkg}}.NewDecoder(r.Body).Decode(&protoReq); err != nil && err != {{ioPkg}}.EOF {
+							{{httpPkg}}.Error(w, err.Error(), {{httpPkg}}.StatusBadRequest)
 							return
 						}
 					{{end}}
 
 					if x, ok := proto.Message(&protoReq).(interface { Validate() error }); ok {
 						if err := x.Validate(); err != nil {
-							http.Error(w, err.Error(), http.StatusBadRequest)
+							{{httpPkg}}.Error(w, err.Error(), {{httpPkg}}.StatusBadRequest)
 							return
 						}
 					}
 
 					if protoReply, err = svc.{{$m.MethodName}}(ctx, &protoReq); err != nil {
-						if pbgoErr, ok := err.(pbgo.Error); ok {
-							http.Error(w, pbgoErr.Text(), pbgoErr.HttpStatus())
+						if pbgoErr, ok := err.({{pbgoPkg}}.Error); ok {
+							{{httpPkg}}.Error(w, pbgoErr.Text(), pbgoErr.HttpStatus())
 							return
 						} else {
-							http.Error(w, err.Error(), http.StatusInternalServerError)
+							{{httpPkg}}.Error(w, err.Error(), {{httpPkg}}.StatusInternalServerError)
 							return
 						}
 					}
 
 					if x, ok := proto.Message(protoReply).(interface { Validate() error }); ok {
 						if err := x.Validate(); err != nil {
-							http.Error(w, err.Error(), http.StatusInternalServerError)
+							{{httpPkg}}.Error(w, err.Error(), {{httpPkg}}.StatusInternalServerError)
 							return
 						}
 					}
@@ -530,7 +580,7 @@ func {{.ServiceName}}GrpcHandler(ctx context.Context, svc {{.ServiceName}}GrpcIn
 					{{if $rest.ContentType}}
 						w.Header().Set("Content-Type", protoReply.{{$rest.ContentType}})
 					{{else if not $rest.ContentBody}}
-						if strings.Contains(r.Header.Get("Accept"), "application/json") {
+						if {{stringsPkg}}.Contains(r.Header.Get("Accept"), "application/json") {
 							w.Header().Set("Content-Type", "application/json")
 						} else {
 							w.Header().Set("Content-Type", "text/plain")
@@ -539,12 +589,12 @@ func {{.ServiceName}}GrpcHandler(ctx context.Context, svc {{.ServiceName}}GrpcIn
 
 					{{if $rest.ContentBody}}
 						if _, err := w.Write(protoReply.{{$rest.ContentBody}}); err != nil {
-							http.Error(w, err.Error(), http.StatusInternalServerError)
+							{{httpPkg}}.Error(w, err.Error(), {{httpPkg}}.StatusInternalServerError)
 							return
 						}
 					{{- else}}
-						if err := json.NewEncoder(w).Encode(&protoReply); err != nil {
-							http.Error(w, err.Error(), http.StatusInternalServerError)
+						if err := {{jsonPkg}}.NewEncoder(w).Encode(&protoReply); err != nil {
+							{{httpPkg}}.Error(w, err.Error(), {{httpPkg}}.StatusInternalServerError)
 							return
 						}
 					{{- end}}

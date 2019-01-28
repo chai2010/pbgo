@@ -8,17 +8,19 @@ import fmt "fmt"
 import math "math"
 import _ "github.com/chai2010/pbgo"
 
-import "context"
-import "encoding/json"
-import "io"
-import "io/ioutil"
-import "net/rpc"
-import "net/http"
-import "regexp"
-import "strings"
+import (
+	context "context"
+	encoding_json "encoding/json"
+	io "io"
+	io_ioutil "io/ioutil"
+	net_http "net/http"
+	net_rpc "net/rpc"
+	regexp "regexp"
+	strings "strings"
 
-import "github.com/chai2010/pbgo"
-import "github.com/julienschmidt/httprouter"
+	github_com_chai2010_pbgo "github.com/chai2010/pbgo"
+	github_com_julienschmidt_httprouter "github.com/julienschmidt/httprouter"
+)
 
 // Reference imports to suppress errors if they are not otherwise used.
 var _ = proto.Marshal
@@ -42,7 +44,7 @@ func (m *String) Reset()         { *m = String{} }
 func (m *String) String() string { return proto.CompactTextString(m) }
 func (*String) ProtoMessage()    {}
 func (*String) Descriptor() ([]byte, []int) {
-	return fileDescriptor_hello_c8da73ca06a54c79, []int{0}
+	return fileDescriptor_hello_94a4fe56d0f5f7b4, []int{0}
 }
 func (m *String) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_String.Unmarshal(m, b)
@@ -81,7 +83,7 @@ func (m *StaticFile) Reset()         { *m = StaticFile{} }
 func (m *StaticFile) String() string { return proto.CompactTextString(m) }
 func (*StaticFile) ProtoMessage()    {}
 func (*StaticFile) Descriptor() ([]byte, []int) {
-	return fileDescriptor_hello_c8da73ca06a54c79, []int{1}
+	return fileDescriptor_hello_94a4fe56d0f5f7b4, []int{1}
 }
 func (m *StaticFile) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_StaticFile.Unmarshal(m, b)
@@ -129,7 +131,7 @@ func (m *Message) Reset()         { *m = Message{} }
 func (m *Message) String() string { return proto.CompactTextString(m) }
 func (*Message) ProtoMessage()    {}
 func (*Message) Descriptor() ([]byte, []int) {
-	return fileDescriptor_hello_c8da73ca06a54c79, []int{2}
+	return fileDescriptor_hello_94a4fe56d0f5f7b4, []int{2}
 }
 func (m *Message) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_Message.Unmarshal(m, b)
@@ -186,50 +188,51 @@ func init() {
 
 // Reference imports to suppress errors if they are not otherwise used.
 var _ = context.Background
-var _ = json.Marshal
-var _ = http.ListenAndServe
+var _ = encoding_json.Marshal
+var _ = net_rpc.Server{}
+var _ = net_http.ListenAndServe
 var _ = io.EOF
-var _ = ioutil.ReadAll
+var _ = io_ioutil.ReadAll
 var _ = regexp.Match
 var _ = strings.Split
-var _ = pbgo.PopulateFieldFromPath
-var _ = httprouter.New
+var _ = github_com_chai2010_pbgo.PopulateFieldFromPath
+var _ = github_com_julienschmidt_httprouter.New
 
-type PBGOHelloServiceInterface interface {
+type HelloServiceInterface interface {
 	Hello(in *String, out *String) error
 	Echo(in *Message, out *Message) error
 	Static(in *String, out *StaticFile) error
 }
 
-type PBGOHelloServiceGrpcInterface interface {
+type HelloServiceGrpcInterface interface {
 	Hello(ctx context.Context, in *String) (out *String, err error)
 	Echo(ctx context.Context, in *Message) (out *Message, err error)
 	Static(ctx context.Context, in *String) (out *StaticFile, err error)
 }
 
-func RegisterPBGOHelloService(srv *rpc.Server, x PBGOHelloServiceInterface) error {
-	if _, ok := x.(*PBGOHelloServiceValidator); !ok {
-		x = &PBGOHelloServiceValidator{PBGOHelloServiceInterface: x}
+func RegisterHelloService(srv *net_rpc.Server, x HelloServiceInterface) error {
+	if _, ok := x.(*HelloServiceValidator); !ok {
+		x = &HelloServiceValidator{HelloServiceInterface: x}
 	}
 
-	if err := srv.RegisterName("PBGOHelloService", x); err != nil {
+	if err := srv.RegisterName("HelloService", x); err != nil {
 		return err
 	}
 	return nil
 }
 
-type PBGOHelloServiceValidator struct {
-	PBGOHelloServiceInterface
+type HelloServiceValidator struct {
+	HelloServiceInterface
 }
 
-func (p *PBGOHelloServiceValidator) Hello(in *String, out *String) error {
+func (p *HelloServiceValidator) Hello(in *String, out *String) error {
 	if x, ok := proto.Message(in).(interface{ Validate() error }); ok {
 		if err := x.Validate(); err != nil {
 			return err
 		}
 	}
 
-	if err := p.PBGOHelloServiceInterface.Hello(in, out); err != nil {
+	if err := p.HelloServiceInterface.Hello(in, out); err != nil {
 		return err
 	}
 
@@ -242,14 +245,14 @@ func (p *PBGOHelloServiceValidator) Hello(in *String, out *String) error {
 	return nil
 }
 
-func (p *PBGOHelloServiceValidator) Echo(in *Message, out *Message) error {
+func (p *HelloServiceValidator) Echo(in *Message, out *Message) error {
 	if x, ok := proto.Message(in).(interface{ Validate() error }); ok {
 		if err := x.Validate(); err != nil {
 			return err
 		}
 	}
 
-	if err := p.PBGOHelloServiceInterface.Echo(in, out); err != nil {
+	if err := p.HelloServiceInterface.Echo(in, out); err != nil {
 		return err
 	}
 
@@ -262,14 +265,14 @@ func (p *PBGOHelloServiceValidator) Echo(in *Message, out *Message) error {
 	return nil
 }
 
-func (p *PBGOHelloServiceValidator) Static(in *String, out *StaticFile) error {
+func (p *HelloServiceValidator) Static(in *String, out *StaticFile) error {
 	if x, ok := proto.Message(in).(interface{ Validate() error }); ok {
 		if err := x.Validate(); err != nil {
 			return err
 		}
 	}
 
-	if err := p.PBGOHelloServiceInterface.Static(in, out); err != nil {
+	if err := p.HelloServiceInterface.Static(in, out); err != nil {
 		return err
 	}
 
@@ -282,19 +285,19 @@ func (p *PBGOHelloServiceValidator) Static(in *String, out *StaticFile) error {
 	return nil
 }
 
-type PBGOHelloServiceClient struct {
-	*rpc.Client
+type HelloServiceClient struct {
+	*net_rpc.Client
 }
 
-func DialPBGOHelloService(network, address string) (*PBGOHelloServiceClient, error) {
-	c, err := rpc.Dial(network, address)
+func DialHelloService(network, address string) (*HelloServiceClient, error) {
+	c, err := net_rpc.Dial(network, address)
 	if err != nil {
 		return nil, err
 	}
-	return &PBGOHelloServiceClient{Client: c}, nil
+	return &HelloServiceClient{Client: c}, nil
 }
 
-func (p *PBGOHelloServiceClient) Hello(in *String) (*String, error) {
+func (p *HelloServiceClient) Hello(in *String) (*String, error) {
 	if x, ok := proto.Message(in).(interface{ Validate() error }); ok {
 		if err := x.Validate(); err != nil {
 			return nil, err
@@ -302,7 +305,7 @@ func (p *PBGOHelloServiceClient) Hello(in *String) (*String, error) {
 	}
 
 	var out = new(String)
-	if err := p.Client.Call("PBGOHelloService.Hello", in, out); err != nil {
+	if err := p.Client.Call("HelloService.Hello", in, out); err != nil {
 		return nil, err
 	}
 
@@ -314,15 +317,15 @@ func (p *PBGOHelloServiceClient) Hello(in *String) (*String, error) {
 
 	return out, nil
 }
-func (p *PBGOHelloServiceClient) AsyncHello(in *String, out *String, done chan *rpc.Call) *rpc.Call {
+func (p *HelloServiceClient) AsyncHello(in *String, out *String, done chan *net_rpc.Call) *net_rpc.Call {
 	if x, ok := proto.Message(in).(interface{ Validate() error }); ok {
 		if err := x.Validate(); err != nil {
-			call := &rpc.Call{
-				ServiceMethod: "PBGOHelloService.Hello",
+			call := &net_rpc.Call{
+				ServiceMethod: "HelloService.Hello",
 				Args:          in,
 				Reply:         out,
 				Error:         err,
-				Done:          make(chan *rpc.Call, 10),
+				Done:          make(chan *net_rpc.Call, 10),
 			}
 			call.Done <- call
 			return call
@@ -330,13 +333,13 @@ func (p *PBGOHelloServiceClient) AsyncHello(in *String, out *String, done chan *
 	}
 
 	return p.Go(
-		"PBGOHelloService.Hello",
+		"HelloService.Hello",
 		in, out,
 		done,
 	)
 }
 
-func (p *PBGOHelloServiceClient) Echo(in *Message) (*Message, error) {
+func (p *HelloServiceClient) Echo(in *Message) (*Message, error) {
 	if x, ok := proto.Message(in).(interface{ Validate() error }); ok {
 		if err := x.Validate(); err != nil {
 			return nil, err
@@ -344,7 +347,7 @@ func (p *PBGOHelloServiceClient) Echo(in *Message) (*Message, error) {
 	}
 
 	var out = new(Message)
-	if err := p.Client.Call("PBGOHelloService.Echo", in, out); err != nil {
+	if err := p.Client.Call("HelloService.Echo", in, out); err != nil {
 		return nil, err
 	}
 
@@ -356,15 +359,15 @@ func (p *PBGOHelloServiceClient) Echo(in *Message) (*Message, error) {
 
 	return out, nil
 }
-func (p *PBGOHelloServiceClient) AsyncEcho(in *Message, out *Message, done chan *rpc.Call) *rpc.Call {
+func (p *HelloServiceClient) AsyncEcho(in *Message, out *Message, done chan *net_rpc.Call) *net_rpc.Call {
 	if x, ok := proto.Message(in).(interface{ Validate() error }); ok {
 		if err := x.Validate(); err != nil {
-			call := &rpc.Call{
-				ServiceMethod: "PBGOHelloService.Echo",
+			call := &net_rpc.Call{
+				ServiceMethod: "HelloService.Echo",
 				Args:          in,
 				Reply:         out,
 				Error:         err,
-				Done:          make(chan *rpc.Call, 10),
+				Done:          make(chan *net_rpc.Call, 10),
 			}
 			call.Done <- call
 			return call
@@ -372,13 +375,13 @@ func (p *PBGOHelloServiceClient) AsyncEcho(in *Message, out *Message, done chan 
 	}
 
 	return p.Go(
-		"PBGOHelloService.Echo",
+		"HelloService.Echo",
 		in, out,
 		done,
 	)
 }
 
-func (p *PBGOHelloServiceClient) Static(in *String) (*StaticFile, error) {
+func (p *HelloServiceClient) Static(in *String) (*StaticFile, error) {
 	if x, ok := proto.Message(in).(interface{ Validate() error }); ok {
 		if err := x.Validate(); err != nil {
 			return nil, err
@@ -386,7 +389,7 @@ func (p *PBGOHelloServiceClient) Static(in *String) (*StaticFile, error) {
 	}
 
 	var out = new(StaticFile)
-	if err := p.Client.Call("PBGOHelloService.Static", in, out); err != nil {
+	if err := p.Client.Call("HelloService.Static", in, out); err != nil {
 		return nil, err
 	}
 
@@ -398,15 +401,15 @@ func (p *PBGOHelloServiceClient) Static(in *String) (*StaticFile, error) {
 
 	return out, nil
 }
-func (p *PBGOHelloServiceClient) AsyncStatic(in *String, out *StaticFile, done chan *rpc.Call) *rpc.Call {
+func (p *HelloServiceClient) AsyncStatic(in *String, out *StaticFile, done chan *net_rpc.Call) *net_rpc.Call {
 	if x, ok := proto.Message(in).(interface{ Validate() error }); ok {
 		if err := x.Validate(); err != nil {
-			call := &rpc.Call{
-				ServiceMethod: "PBGOHelloService.Static",
+			call := &net_rpc.Call{
+				ServiceMethod: "HelloService.Static",
 				Args:          in,
 				Reply:         out,
 				Error:         err,
-				Done:          make(chan *rpc.Call, 10),
+				Done:          make(chan *net_rpc.Call, 10),
 			}
 			call.Done <- call
 			return call
@@ -414,50 +417,50 @@ func (p *PBGOHelloServiceClient) AsyncStatic(in *String, out *StaticFile, done c
 	}
 
 	return p.Go(
-		"PBGOHelloService.Static",
+		"HelloService.Static",
 		in, out,
 		done,
 	)
 }
 
-func PBGOHelloServiceHandler(svc PBGOHelloServiceInterface) http.Handler {
-	var router = httprouter.New()
+func HelloServiceHandler(svc HelloServiceInterface) net_http.Handler {
+	var router = github_com_julienschmidt_httprouter.New()
 
 	var re = regexp.MustCompile("(\\*|\\:)(\\w|\\.)+")
 	_ = re
 
 	router.Handle("DELETE", "/hello",
-		func(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+		func(w net_http.ResponseWriter, r *net_http.Request, ps github_com_julienschmidt_httprouter.Params) {
 			var (
 				protoReq   String
 				protoReply String
 			)
 
-			if err := pbgo.PopulateQueryParameters(&protoReq, r.URL.Query()); err != nil {
-				http.Error(w, err.Error(), http.StatusBadRequest)
+			if err := github_com_chai2010_pbgo.PopulateQueryParameters(&protoReq, r.URL.Query()); err != nil {
+				net_http.Error(w, err.Error(), net_http.StatusBadRequest)
 				return
 			}
 
 			if x, ok := proto.Message(&protoReq).(interface{ Validate() error }); ok {
 				if err := x.Validate(); err != nil {
-					http.Error(w, err.Error(), http.StatusBadRequest)
+					net_http.Error(w, err.Error(), net_http.StatusBadRequest)
 					return
 				}
 			}
 
 			if err := svc.Hello(&protoReq, &protoReply); err != nil {
-				if pbgoErr, ok := err.(pbgo.Error); ok {
-					http.Error(w, pbgoErr.Text(), pbgoErr.HttpStatus())
+				if pbgoErr, ok := err.(github_com_chai2010_pbgo.Error); ok {
+					net_http.Error(w, pbgoErr.Text(), pbgoErr.HttpStatus())
 					return
 				} else {
-					http.Error(w, err.Error(), http.StatusInternalServerError)
+					net_http.Error(w, err.Error(), net_http.StatusInternalServerError)
 					return
 				}
 			}
 
 			if x, ok := proto.Message(&protoReply).(interface{ Validate() error }); ok {
 				if err := x.Validate(); err != nil {
-					http.Error(w, err.Error(), http.StatusInternalServerError)
+					net_http.Error(w, err.Error(), net_http.StatusInternalServerError)
 					return
 				}
 			}
@@ -468,15 +471,15 @@ func PBGOHelloServiceHandler(svc PBGOHelloServiceInterface) http.Handler {
 				w.Header().Set("Content-Type", "text/plain")
 			}
 
-			if err := json.NewEncoder(w).Encode(&protoReply); err != nil {
-				http.Error(w, err.Error(), http.StatusInternalServerError)
+			if err := encoding_json.NewEncoder(w).Encode(&protoReply); err != nil {
+				net_http.Error(w, err.Error(), net_http.StatusInternalServerError)
 				return
 			}
 		},
 	)
 
 	router.Handle("GET", "/hello/:value",
-		func(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+		func(w net_http.ResponseWriter, r *net_http.Request, ps github_com_julienschmidt_httprouter.Params) {
 			var (
 				protoReq   String
 				protoReply String
@@ -484,38 +487,38 @@ func PBGOHelloServiceHandler(svc PBGOHelloServiceInterface) http.Handler {
 
 			for _, fieldPath := range re.FindAllString("/hello/:value", -1) {
 				fieldPath := strings.TrimLeft(fieldPath, ":*")
-				err := pbgo.PopulateFieldFromPath(&protoReq, fieldPath, ps.ByName(fieldPath))
+				err := github_com_chai2010_pbgo.PopulateFieldFromPath(&protoReq, fieldPath, ps.ByName(fieldPath))
 				if err != nil {
-					http.Error(w, err.Error(), http.StatusBadRequest)
+					net_http.Error(w, err.Error(), net_http.StatusBadRequest)
 					return
 				}
 			}
 
-			if err := pbgo.PopulateQueryParameters(&protoReq, r.URL.Query()); err != nil {
-				http.Error(w, err.Error(), http.StatusBadRequest)
+			if err := github_com_chai2010_pbgo.PopulateQueryParameters(&protoReq, r.URL.Query()); err != nil {
+				net_http.Error(w, err.Error(), net_http.StatusBadRequest)
 				return
 			}
 
 			if x, ok := proto.Message(&protoReq).(interface{ Validate() error }); ok {
 				if err := x.Validate(); err != nil {
-					http.Error(w, err.Error(), http.StatusBadRequest)
+					net_http.Error(w, err.Error(), net_http.StatusBadRequest)
 					return
 				}
 			}
 
 			if err := svc.Hello(&protoReq, &protoReply); err != nil {
-				if pbgoErr, ok := err.(pbgo.Error); ok {
-					http.Error(w, pbgoErr.Text(), pbgoErr.HttpStatus())
+				if pbgoErr, ok := err.(github_com_chai2010_pbgo.Error); ok {
+					net_http.Error(w, pbgoErr.Text(), pbgoErr.HttpStatus())
 					return
 				} else {
-					http.Error(w, err.Error(), http.StatusInternalServerError)
+					net_http.Error(w, err.Error(), net_http.StatusInternalServerError)
 					return
 				}
 			}
 
 			if x, ok := proto.Message(&protoReply).(interface{ Validate() error }); ok {
 				if err := x.Validate(); err != nil {
-					http.Error(w, err.Error(), http.StatusInternalServerError)
+					net_http.Error(w, err.Error(), net_http.StatusInternalServerError)
 					return
 				}
 			}
@@ -526,50 +529,50 @@ func PBGOHelloServiceHandler(svc PBGOHelloServiceInterface) http.Handler {
 				w.Header().Set("Content-Type", "text/plain")
 			}
 
-			if err := json.NewEncoder(w).Encode(&protoReply); err != nil {
-				http.Error(w, err.Error(), http.StatusInternalServerError)
+			if err := encoding_json.NewEncoder(w).Encode(&protoReply); err != nil {
+				net_http.Error(w, err.Error(), net_http.StatusInternalServerError)
 				return
 			}
 		},
 	)
 
 	router.Handle("PATCH", "/hello",
-		func(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+		func(w net_http.ResponseWriter, r *net_http.Request, ps github_com_julienschmidt_httprouter.Params) {
 			var (
 				protoReq   String
 				protoReply String
 			)
 
-			if err := pbgo.PopulateQueryParameters(&protoReq, r.URL.Query()); err != nil {
-				http.Error(w, err.Error(), http.StatusBadRequest)
+			if err := github_com_chai2010_pbgo.PopulateQueryParameters(&protoReq, r.URL.Query()); err != nil {
+				net_http.Error(w, err.Error(), net_http.StatusBadRequest)
 				return
 			}
 
-			if err := json.NewDecoder(r.Body).Decode(&protoReq); err != nil && err != io.EOF {
-				http.Error(w, err.Error(), http.StatusBadRequest)
+			if err := encoding_json.NewDecoder(r.Body).Decode(&protoReq); err != nil && err != io.EOF {
+				net_http.Error(w, err.Error(), net_http.StatusBadRequest)
 				return
 			}
 
 			if x, ok := proto.Message(&protoReq).(interface{ Validate() error }); ok {
 				if err := x.Validate(); err != nil {
-					http.Error(w, err.Error(), http.StatusBadRequest)
+					net_http.Error(w, err.Error(), net_http.StatusBadRequest)
 					return
 				}
 			}
 
 			if err := svc.Hello(&protoReq, &protoReply); err != nil {
-				if pbgoErr, ok := err.(pbgo.Error); ok {
-					http.Error(w, pbgoErr.Text(), pbgoErr.HttpStatus())
+				if pbgoErr, ok := err.(github_com_chai2010_pbgo.Error); ok {
+					net_http.Error(w, pbgoErr.Text(), pbgoErr.HttpStatus())
 					return
 				} else {
-					http.Error(w, err.Error(), http.StatusInternalServerError)
+					net_http.Error(w, err.Error(), net_http.StatusInternalServerError)
 					return
 				}
 			}
 
 			if x, ok := proto.Message(&protoReply).(interface{ Validate() error }); ok {
 				if err := x.Validate(); err != nil {
-					http.Error(w, err.Error(), http.StatusInternalServerError)
+					net_http.Error(w, err.Error(), net_http.StatusInternalServerError)
 					return
 				}
 			}
@@ -580,50 +583,50 @@ func PBGOHelloServiceHandler(svc PBGOHelloServiceInterface) http.Handler {
 				w.Header().Set("Content-Type", "text/plain")
 			}
 
-			if err := json.NewEncoder(w).Encode(&protoReply); err != nil {
-				http.Error(w, err.Error(), http.StatusInternalServerError)
+			if err := encoding_json.NewEncoder(w).Encode(&protoReply); err != nil {
+				net_http.Error(w, err.Error(), net_http.StatusInternalServerError)
 				return
 			}
 		},
 	)
 
 	router.Handle("POST", "/hello",
-		func(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+		func(w net_http.ResponseWriter, r *net_http.Request, ps github_com_julienschmidt_httprouter.Params) {
 			var (
 				protoReq   String
 				protoReply String
 			)
 
-			if err := pbgo.PopulateQueryParameters(&protoReq, r.URL.Query()); err != nil {
-				http.Error(w, err.Error(), http.StatusBadRequest)
+			if err := github_com_chai2010_pbgo.PopulateQueryParameters(&protoReq, r.URL.Query()); err != nil {
+				net_http.Error(w, err.Error(), net_http.StatusBadRequest)
 				return
 			}
 
-			if err := json.NewDecoder(r.Body).Decode(&protoReq); err != nil && err != io.EOF {
-				http.Error(w, err.Error(), http.StatusBadRequest)
+			if err := encoding_json.NewDecoder(r.Body).Decode(&protoReq); err != nil && err != io.EOF {
+				net_http.Error(w, err.Error(), net_http.StatusBadRequest)
 				return
 			}
 
 			if x, ok := proto.Message(&protoReq).(interface{ Validate() error }); ok {
 				if err := x.Validate(); err != nil {
-					http.Error(w, err.Error(), http.StatusBadRequest)
+					net_http.Error(w, err.Error(), net_http.StatusBadRequest)
 					return
 				}
 			}
 
 			if err := svc.Hello(&protoReq, &protoReply); err != nil {
-				if pbgoErr, ok := err.(pbgo.Error); ok {
-					http.Error(w, pbgoErr.Text(), pbgoErr.HttpStatus())
+				if pbgoErr, ok := err.(github_com_chai2010_pbgo.Error); ok {
+					net_http.Error(w, pbgoErr.Text(), pbgoErr.HttpStatus())
 					return
 				} else {
-					http.Error(w, err.Error(), http.StatusInternalServerError)
+					net_http.Error(w, err.Error(), net_http.StatusInternalServerError)
 					return
 				}
 			}
 
 			if x, ok := proto.Message(&protoReply).(interface{ Validate() error }); ok {
 				if err := x.Validate(); err != nil {
-					http.Error(w, err.Error(), http.StatusInternalServerError)
+					net_http.Error(w, err.Error(), net_http.StatusInternalServerError)
 					return
 				}
 			}
@@ -634,15 +637,15 @@ func PBGOHelloServiceHandler(svc PBGOHelloServiceInterface) http.Handler {
 				w.Header().Set("Content-Type", "text/plain")
 			}
 
-			if err := json.NewEncoder(w).Encode(&protoReply); err != nil {
-				http.Error(w, err.Error(), http.StatusInternalServerError)
+			if err := encoding_json.NewEncoder(w).Encode(&protoReply); err != nil {
+				net_http.Error(w, err.Error(), net_http.StatusInternalServerError)
 				return
 			}
 		},
 	)
 
 	router.Handle("GET", "/echo/:subfiled.value",
-		func(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+		func(w net_http.ResponseWriter, r *net_http.Request, ps github_com_julienschmidt_httprouter.Params) {
 			var (
 				protoReq   Message
 				protoReply Message
@@ -650,38 +653,38 @@ func PBGOHelloServiceHandler(svc PBGOHelloServiceInterface) http.Handler {
 
 			for _, fieldPath := range re.FindAllString("/echo/:subfiled.value", -1) {
 				fieldPath := strings.TrimLeft(fieldPath, ":*")
-				err := pbgo.PopulateFieldFromPath(&protoReq, fieldPath, ps.ByName(fieldPath))
+				err := github_com_chai2010_pbgo.PopulateFieldFromPath(&protoReq, fieldPath, ps.ByName(fieldPath))
 				if err != nil {
-					http.Error(w, err.Error(), http.StatusBadRequest)
+					net_http.Error(w, err.Error(), net_http.StatusBadRequest)
 					return
 				}
 			}
 
-			if err := pbgo.PopulateQueryParameters(&protoReq, r.URL.Query()); err != nil {
-				http.Error(w, err.Error(), http.StatusBadRequest)
+			if err := github_com_chai2010_pbgo.PopulateQueryParameters(&protoReq, r.URL.Query()); err != nil {
+				net_http.Error(w, err.Error(), net_http.StatusBadRequest)
 				return
 			}
 
 			if x, ok := proto.Message(&protoReq).(interface{ Validate() error }); ok {
 				if err := x.Validate(); err != nil {
-					http.Error(w, err.Error(), http.StatusBadRequest)
+					net_http.Error(w, err.Error(), net_http.StatusBadRequest)
 					return
 				}
 			}
 
 			if err := svc.Echo(&protoReq, &protoReply); err != nil {
-				if pbgoErr, ok := err.(pbgo.Error); ok {
-					http.Error(w, pbgoErr.Text(), pbgoErr.HttpStatus())
+				if pbgoErr, ok := err.(github_com_chai2010_pbgo.Error); ok {
+					net_http.Error(w, pbgoErr.Text(), pbgoErr.HttpStatus())
 					return
 				} else {
-					http.Error(w, err.Error(), http.StatusInternalServerError)
+					net_http.Error(w, err.Error(), net_http.StatusInternalServerError)
 					return
 				}
 			}
 
 			if x, ok := proto.Message(&protoReply).(interface{ Validate() error }); ok {
 				if err := x.Validate(); err != nil {
-					http.Error(w, err.Error(), http.StatusInternalServerError)
+					net_http.Error(w, err.Error(), net_http.StatusInternalServerError)
 					return
 				}
 			}
@@ -692,15 +695,15 @@ func PBGOHelloServiceHandler(svc PBGOHelloServiceInterface) http.Handler {
 				w.Header().Set("Content-Type", "text/plain")
 			}
 
-			if err := json.NewEncoder(w).Encode(&protoReply); err != nil {
-				http.Error(w, err.Error(), http.StatusInternalServerError)
+			if err := encoding_json.NewEncoder(w).Encode(&protoReply); err != nil {
+				net_http.Error(w, err.Error(), net_http.StatusInternalServerError)
 				return
 			}
 		},
 	)
 
 	router.Handle("GET", "/static/:value",
-		func(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+		func(w net_http.ResponseWriter, r *net_http.Request, ps github_com_julienschmidt_httprouter.Params) {
 			var (
 				protoReq   String
 				protoReply StaticFile
@@ -708,38 +711,38 @@ func PBGOHelloServiceHandler(svc PBGOHelloServiceInterface) http.Handler {
 
 			for _, fieldPath := range re.FindAllString("/static/:value", -1) {
 				fieldPath := strings.TrimLeft(fieldPath, ":*")
-				err := pbgo.PopulateFieldFromPath(&protoReq, fieldPath, ps.ByName(fieldPath))
+				err := github_com_chai2010_pbgo.PopulateFieldFromPath(&protoReq, fieldPath, ps.ByName(fieldPath))
 				if err != nil {
-					http.Error(w, err.Error(), http.StatusBadRequest)
+					net_http.Error(w, err.Error(), net_http.StatusBadRequest)
 					return
 				}
 			}
 
-			if err := pbgo.PopulateQueryParameters(&protoReq, r.URL.Query()); err != nil {
-				http.Error(w, err.Error(), http.StatusBadRequest)
+			if err := github_com_chai2010_pbgo.PopulateQueryParameters(&protoReq, r.URL.Query()); err != nil {
+				net_http.Error(w, err.Error(), net_http.StatusBadRequest)
 				return
 			}
 
 			if x, ok := proto.Message(&protoReq).(interface{ Validate() error }); ok {
 				if err := x.Validate(); err != nil {
-					http.Error(w, err.Error(), http.StatusBadRequest)
+					net_http.Error(w, err.Error(), net_http.StatusBadRequest)
 					return
 				}
 			}
 
 			if err := svc.Static(&protoReq, &protoReply); err != nil {
-				if pbgoErr, ok := err.(pbgo.Error); ok {
-					http.Error(w, pbgoErr.Text(), pbgoErr.HttpStatus())
+				if pbgoErr, ok := err.(github_com_chai2010_pbgo.Error); ok {
+					net_http.Error(w, pbgoErr.Text(), pbgoErr.HttpStatus())
 					return
 				} else {
-					http.Error(w, err.Error(), http.StatusInternalServerError)
+					net_http.Error(w, err.Error(), net_http.StatusInternalServerError)
 					return
 				}
 			}
 
 			if x, ok := proto.Message(&protoReply).(interface{ Validate() error }); ok {
 				if err := x.Validate(); err != nil {
-					http.Error(w, err.Error(), http.StatusInternalServerError)
+					net_http.Error(w, err.Error(), net_http.StatusInternalServerError)
 					return
 				}
 			}
@@ -747,7 +750,7 @@ func PBGOHelloServiceHandler(svc PBGOHelloServiceInterface) http.Handler {
 			w.Header().Set("Content-Type", protoReply.ContentType)
 
 			if _, err := w.Write(protoReply.ContentBody); err != nil {
-				http.Error(w, err.Error(), http.StatusInternalServerError)
+				net_http.Error(w, err.Error(), net_http.StatusInternalServerError)
 				return
 			}
 		},
@@ -756,45 +759,45 @@ func PBGOHelloServiceHandler(svc PBGOHelloServiceInterface) http.Handler {
 	return router
 }
 
-func PBGOHelloServiceGrpcHandler(ctx context.Context, svc PBGOHelloServiceGrpcInterface) http.Handler {
-	var router = httprouter.New()
+func HelloServiceGrpcHandler(ctx context.Context, svc HelloServiceGrpcInterface) net_http.Handler {
+	var router = github_com_julienschmidt_httprouter.New()
 
 	var re = regexp.MustCompile("(\\*|\\:)(\\w|\\.)+")
 	_ = re
 
 	router.Handle("DELETE", "/hello",
-		func(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+		func(w net_http.ResponseWriter, r *net_http.Request, ps github_com_julienschmidt_httprouter.Params) {
 			var (
 				protoReq   String
 				protoReply *String
 				err        error
 			)
 
-			if err := pbgo.PopulateQueryParameters(&protoReq, r.URL.Query()); err != nil {
-				http.Error(w, err.Error(), http.StatusBadRequest)
+			if err := github_com_chai2010_pbgo.PopulateQueryParameters(&protoReq, r.URL.Query()); err != nil {
+				net_http.Error(w, err.Error(), net_http.StatusBadRequest)
 				return
 			}
 
 			if x, ok := proto.Message(&protoReq).(interface{ Validate() error }); ok {
 				if err := x.Validate(); err != nil {
-					http.Error(w, err.Error(), http.StatusBadRequest)
+					net_http.Error(w, err.Error(), net_http.StatusBadRequest)
 					return
 				}
 			}
 
 			if protoReply, err = svc.Hello(ctx, &protoReq); err != nil {
-				if pbgoErr, ok := err.(pbgo.Error); ok {
-					http.Error(w, pbgoErr.Text(), pbgoErr.HttpStatus())
+				if pbgoErr, ok := err.(github_com_chai2010_pbgo.Error); ok {
+					net_http.Error(w, pbgoErr.Text(), pbgoErr.HttpStatus())
 					return
 				} else {
-					http.Error(w, err.Error(), http.StatusInternalServerError)
+					net_http.Error(w, err.Error(), net_http.StatusInternalServerError)
 					return
 				}
 			}
 
 			if x, ok := proto.Message(protoReply).(interface{ Validate() error }); ok {
 				if err := x.Validate(); err != nil {
-					http.Error(w, err.Error(), http.StatusInternalServerError)
+					net_http.Error(w, err.Error(), net_http.StatusInternalServerError)
 					return
 				}
 			}
@@ -805,15 +808,15 @@ func PBGOHelloServiceGrpcHandler(ctx context.Context, svc PBGOHelloServiceGrpcIn
 				w.Header().Set("Content-Type", "text/plain")
 			}
 
-			if err := json.NewEncoder(w).Encode(&protoReply); err != nil {
-				http.Error(w, err.Error(), http.StatusInternalServerError)
+			if err := encoding_json.NewEncoder(w).Encode(&protoReply); err != nil {
+				net_http.Error(w, err.Error(), net_http.StatusInternalServerError)
 				return
 			}
 		},
 	)
 
 	router.Handle("GET", "/hello/:value",
-		func(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+		func(w net_http.ResponseWriter, r *net_http.Request, ps github_com_julienschmidt_httprouter.Params) {
 			var (
 				protoReq   String
 				protoReply *String
@@ -822,38 +825,38 @@ func PBGOHelloServiceGrpcHandler(ctx context.Context, svc PBGOHelloServiceGrpcIn
 
 			for _, fieldPath := range re.FindAllString("/hello/:value", -1) {
 				fieldPath := strings.TrimLeft(fieldPath, ":*")
-				err := pbgo.PopulateFieldFromPath(&protoReq, fieldPath, ps.ByName(fieldPath))
+				err := github_com_chai2010_pbgo.PopulateFieldFromPath(&protoReq, fieldPath, ps.ByName(fieldPath))
 				if err != nil {
-					http.Error(w, err.Error(), http.StatusBadRequest)
+					net_http.Error(w, err.Error(), net_http.StatusBadRequest)
 					return
 				}
 			}
 
-			if err := pbgo.PopulateQueryParameters(&protoReq, r.URL.Query()); err != nil {
-				http.Error(w, err.Error(), http.StatusBadRequest)
+			if err := github_com_chai2010_pbgo.PopulateQueryParameters(&protoReq, r.URL.Query()); err != nil {
+				net_http.Error(w, err.Error(), net_http.StatusBadRequest)
 				return
 			}
 
 			if x, ok := proto.Message(&protoReq).(interface{ Validate() error }); ok {
 				if err := x.Validate(); err != nil {
-					http.Error(w, err.Error(), http.StatusBadRequest)
+					net_http.Error(w, err.Error(), net_http.StatusBadRequest)
 					return
 				}
 			}
 
 			if protoReply, err = svc.Hello(ctx, &protoReq); err != nil {
-				if pbgoErr, ok := err.(pbgo.Error); ok {
-					http.Error(w, pbgoErr.Text(), pbgoErr.HttpStatus())
+				if pbgoErr, ok := err.(github_com_chai2010_pbgo.Error); ok {
+					net_http.Error(w, pbgoErr.Text(), pbgoErr.HttpStatus())
 					return
 				} else {
-					http.Error(w, err.Error(), http.StatusInternalServerError)
+					net_http.Error(w, err.Error(), net_http.StatusInternalServerError)
 					return
 				}
 			}
 
 			if x, ok := proto.Message(protoReply).(interface{ Validate() error }); ok {
 				if err := x.Validate(); err != nil {
-					http.Error(w, err.Error(), http.StatusInternalServerError)
+					net_http.Error(w, err.Error(), net_http.StatusInternalServerError)
 					return
 				}
 			}
@@ -864,51 +867,51 @@ func PBGOHelloServiceGrpcHandler(ctx context.Context, svc PBGOHelloServiceGrpcIn
 				w.Header().Set("Content-Type", "text/plain")
 			}
 
-			if err := json.NewEncoder(w).Encode(&protoReply); err != nil {
-				http.Error(w, err.Error(), http.StatusInternalServerError)
+			if err := encoding_json.NewEncoder(w).Encode(&protoReply); err != nil {
+				net_http.Error(w, err.Error(), net_http.StatusInternalServerError)
 				return
 			}
 		},
 	)
 
 	router.Handle("PATCH", "/hello",
-		func(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+		func(w net_http.ResponseWriter, r *net_http.Request, ps github_com_julienschmidt_httprouter.Params) {
 			var (
 				protoReq   String
 				protoReply *String
 				err        error
 			)
 
-			if err := pbgo.PopulateQueryParameters(&protoReq, r.URL.Query()); err != nil {
-				http.Error(w, err.Error(), http.StatusBadRequest)
+			if err := github_com_chai2010_pbgo.PopulateQueryParameters(&protoReq, r.URL.Query()); err != nil {
+				net_http.Error(w, err.Error(), net_http.StatusBadRequest)
 				return
 			}
 
-			if err := json.NewDecoder(r.Body).Decode(&protoReq); err != nil && err != io.EOF {
-				http.Error(w, err.Error(), http.StatusBadRequest)
+			if err := encoding_json.NewDecoder(r.Body).Decode(&protoReq); err != nil && err != io.EOF {
+				net_http.Error(w, err.Error(), net_http.StatusBadRequest)
 				return
 			}
 
 			if x, ok := proto.Message(&protoReq).(interface{ Validate() error }); ok {
 				if err := x.Validate(); err != nil {
-					http.Error(w, err.Error(), http.StatusBadRequest)
+					net_http.Error(w, err.Error(), net_http.StatusBadRequest)
 					return
 				}
 			}
 
 			if protoReply, err = svc.Hello(ctx, &protoReq); err != nil {
-				if pbgoErr, ok := err.(pbgo.Error); ok {
-					http.Error(w, pbgoErr.Text(), pbgoErr.HttpStatus())
+				if pbgoErr, ok := err.(github_com_chai2010_pbgo.Error); ok {
+					net_http.Error(w, pbgoErr.Text(), pbgoErr.HttpStatus())
 					return
 				} else {
-					http.Error(w, err.Error(), http.StatusInternalServerError)
+					net_http.Error(w, err.Error(), net_http.StatusInternalServerError)
 					return
 				}
 			}
 
 			if x, ok := proto.Message(protoReply).(interface{ Validate() error }); ok {
 				if err := x.Validate(); err != nil {
-					http.Error(w, err.Error(), http.StatusInternalServerError)
+					net_http.Error(w, err.Error(), net_http.StatusInternalServerError)
 					return
 				}
 			}
@@ -919,51 +922,51 @@ func PBGOHelloServiceGrpcHandler(ctx context.Context, svc PBGOHelloServiceGrpcIn
 				w.Header().Set("Content-Type", "text/plain")
 			}
 
-			if err := json.NewEncoder(w).Encode(&protoReply); err != nil {
-				http.Error(w, err.Error(), http.StatusInternalServerError)
+			if err := encoding_json.NewEncoder(w).Encode(&protoReply); err != nil {
+				net_http.Error(w, err.Error(), net_http.StatusInternalServerError)
 				return
 			}
 		},
 	)
 
 	router.Handle("POST", "/hello",
-		func(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+		func(w net_http.ResponseWriter, r *net_http.Request, ps github_com_julienschmidt_httprouter.Params) {
 			var (
 				protoReq   String
 				protoReply *String
 				err        error
 			)
 
-			if err := pbgo.PopulateQueryParameters(&protoReq, r.URL.Query()); err != nil {
-				http.Error(w, err.Error(), http.StatusBadRequest)
+			if err := github_com_chai2010_pbgo.PopulateQueryParameters(&protoReq, r.URL.Query()); err != nil {
+				net_http.Error(w, err.Error(), net_http.StatusBadRequest)
 				return
 			}
 
-			if err := json.NewDecoder(r.Body).Decode(&protoReq); err != nil && err != io.EOF {
-				http.Error(w, err.Error(), http.StatusBadRequest)
+			if err := encoding_json.NewDecoder(r.Body).Decode(&protoReq); err != nil && err != io.EOF {
+				net_http.Error(w, err.Error(), net_http.StatusBadRequest)
 				return
 			}
 
 			if x, ok := proto.Message(&protoReq).(interface{ Validate() error }); ok {
 				if err := x.Validate(); err != nil {
-					http.Error(w, err.Error(), http.StatusBadRequest)
+					net_http.Error(w, err.Error(), net_http.StatusBadRequest)
 					return
 				}
 			}
 
 			if protoReply, err = svc.Hello(ctx, &protoReq); err != nil {
-				if pbgoErr, ok := err.(pbgo.Error); ok {
-					http.Error(w, pbgoErr.Text(), pbgoErr.HttpStatus())
+				if pbgoErr, ok := err.(github_com_chai2010_pbgo.Error); ok {
+					net_http.Error(w, pbgoErr.Text(), pbgoErr.HttpStatus())
 					return
 				} else {
-					http.Error(w, err.Error(), http.StatusInternalServerError)
+					net_http.Error(w, err.Error(), net_http.StatusInternalServerError)
 					return
 				}
 			}
 
 			if x, ok := proto.Message(protoReply).(interface{ Validate() error }); ok {
 				if err := x.Validate(); err != nil {
-					http.Error(w, err.Error(), http.StatusInternalServerError)
+					net_http.Error(w, err.Error(), net_http.StatusInternalServerError)
 					return
 				}
 			}
@@ -974,15 +977,15 @@ func PBGOHelloServiceGrpcHandler(ctx context.Context, svc PBGOHelloServiceGrpcIn
 				w.Header().Set("Content-Type", "text/plain")
 			}
 
-			if err := json.NewEncoder(w).Encode(&protoReply); err != nil {
-				http.Error(w, err.Error(), http.StatusInternalServerError)
+			if err := encoding_json.NewEncoder(w).Encode(&protoReply); err != nil {
+				net_http.Error(w, err.Error(), net_http.StatusInternalServerError)
 				return
 			}
 		},
 	)
 
 	router.Handle("GET", "/echo/:subfiled.value",
-		func(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+		func(w net_http.ResponseWriter, r *net_http.Request, ps github_com_julienschmidt_httprouter.Params) {
 			var (
 				protoReq   Message
 				protoReply *Message
@@ -991,38 +994,38 @@ func PBGOHelloServiceGrpcHandler(ctx context.Context, svc PBGOHelloServiceGrpcIn
 
 			for _, fieldPath := range re.FindAllString("/echo/:subfiled.value", -1) {
 				fieldPath := strings.TrimLeft(fieldPath, ":*")
-				err := pbgo.PopulateFieldFromPath(&protoReq, fieldPath, ps.ByName(fieldPath))
+				err := github_com_chai2010_pbgo.PopulateFieldFromPath(&protoReq, fieldPath, ps.ByName(fieldPath))
 				if err != nil {
-					http.Error(w, err.Error(), http.StatusBadRequest)
+					net_http.Error(w, err.Error(), net_http.StatusBadRequest)
 					return
 				}
 			}
 
-			if err := pbgo.PopulateQueryParameters(&protoReq, r.URL.Query()); err != nil {
-				http.Error(w, err.Error(), http.StatusBadRequest)
+			if err := github_com_chai2010_pbgo.PopulateQueryParameters(&protoReq, r.URL.Query()); err != nil {
+				net_http.Error(w, err.Error(), net_http.StatusBadRequest)
 				return
 			}
 
 			if x, ok := proto.Message(&protoReq).(interface{ Validate() error }); ok {
 				if err := x.Validate(); err != nil {
-					http.Error(w, err.Error(), http.StatusBadRequest)
+					net_http.Error(w, err.Error(), net_http.StatusBadRequest)
 					return
 				}
 			}
 
 			if protoReply, err = svc.Echo(ctx, &protoReq); err != nil {
-				if pbgoErr, ok := err.(pbgo.Error); ok {
-					http.Error(w, pbgoErr.Text(), pbgoErr.HttpStatus())
+				if pbgoErr, ok := err.(github_com_chai2010_pbgo.Error); ok {
+					net_http.Error(w, pbgoErr.Text(), pbgoErr.HttpStatus())
 					return
 				} else {
-					http.Error(w, err.Error(), http.StatusInternalServerError)
+					net_http.Error(w, err.Error(), net_http.StatusInternalServerError)
 					return
 				}
 			}
 
 			if x, ok := proto.Message(protoReply).(interface{ Validate() error }); ok {
 				if err := x.Validate(); err != nil {
-					http.Error(w, err.Error(), http.StatusInternalServerError)
+					net_http.Error(w, err.Error(), net_http.StatusInternalServerError)
 					return
 				}
 			}
@@ -1033,15 +1036,15 @@ func PBGOHelloServiceGrpcHandler(ctx context.Context, svc PBGOHelloServiceGrpcIn
 				w.Header().Set("Content-Type", "text/plain")
 			}
 
-			if err := json.NewEncoder(w).Encode(&protoReply); err != nil {
-				http.Error(w, err.Error(), http.StatusInternalServerError)
+			if err := encoding_json.NewEncoder(w).Encode(&protoReply); err != nil {
+				net_http.Error(w, err.Error(), net_http.StatusInternalServerError)
 				return
 			}
 		},
 	)
 
 	router.Handle("GET", "/static/:value",
-		func(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+		func(w net_http.ResponseWriter, r *net_http.Request, ps github_com_julienschmidt_httprouter.Params) {
 			var (
 				protoReq   String
 				protoReply *StaticFile
@@ -1050,38 +1053,38 @@ func PBGOHelloServiceGrpcHandler(ctx context.Context, svc PBGOHelloServiceGrpcIn
 
 			for _, fieldPath := range re.FindAllString("/static/:value", -1) {
 				fieldPath := strings.TrimLeft(fieldPath, ":*")
-				err := pbgo.PopulateFieldFromPath(&protoReq, fieldPath, ps.ByName(fieldPath))
+				err := github_com_chai2010_pbgo.PopulateFieldFromPath(&protoReq, fieldPath, ps.ByName(fieldPath))
 				if err != nil {
-					http.Error(w, err.Error(), http.StatusBadRequest)
+					net_http.Error(w, err.Error(), net_http.StatusBadRequest)
 					return
 				}
 			}
 
-			if err := pbgo.PopulateQueryParameters(&protoReq, r.URL.Query()); err != nil {
-				http.Error(w, err.Error(), http.StatusBadRequest)
+			if err := github_com_chai2010_pbgo.PopulateQueryParameters(&protoReq, r.URL.Query()); err != nil {
+				net_http.Error(w, err.Error(), net_http.StatusBadRequest)
 				return
 			}
 
 			if x, ok := proto.Message(&protoReq).(interface{ Validate() error }); ok {
 				if err := x.Validate(); err != nil {
-					http.Error(w, err.Error(), http.StatusBadRequest)
+					net_http.Error(w, err.Error(), net_http.StatusBadRequest)
 					return
 				}
 			}
 
 			if protoReply, err = svc.Static(ctx, &protoReq); err != nil {
-				if pbgoErr, ok := err.(pbgo.Error); ok {
-					http.Error(w, pbgoErr.Text(), pbgoErr.HttpStatus())
+				if pbgoErr, ok := err.(github_com_chai2010_pbgo.Error); ok {
+					net_http.Error(w, pbgoErr.Text(), pbgoErr.HttpStatus())
 					return
 				} else {
-					http.Error(w, err.Error(), http.StatusInternalServerError)
+					net_http.Error(w, err.Error(), net_http.StatusInternalServerError)
 					return
 				}
 			}
 
 			if x, ok := proto.Message(protoReply).(interface{ Validate() error }); ok {
 				if err := x.Validate(); err != nil {
-					http.Error(w, err.Error(), http.StatusInternalServerError)
+					net_http.Error(w, err.Error(), net_http.StatusInternalServerError)
 					return
 				}
 			}
@@ -1089,7 +1092,7 @@ func PBGOHelloServiceGrpcHandler(ctx context.Context, svc PBGOHelloServiceGrpcIn
 			w.Header().Set("Content-Type", protoReply.ContentType)
 
 			if _, err := w.Write(protoReply.ContentBody); err != nil {
-				http.Error(w, err.Error(), http.StatusInternalServerError)
+				net_http.Error(w, err.Error(), net_http.StatusInternalServerError)
 				return
 			}
 		},
@@ -1098,37 +1101,36 @@ func PBGOHelloServiceGrpcHandler(ctx context.Context, svc PBGOHelloServiceGrpcIn
 	return router
 }
 
-func init() { proto.RegisterFile("hello.proto", fileDescriptor_hello_c8da73ca06a54c79) }
+func init() { proto.RegisterFile("hello.proto", fileDescriptor_hello_94a4fe56d0f5f7b4) }
 
-var fileDescriptor_hello_c8da73ca06a54c79 = []byte{
-	// 450 bytes of a gzipped FileDescriptorProto
+var fileDescriptor_hello_94a4fe56d0f5f7b4 = []byte{
+	// 433 bytes of a gzipped FileDescriptorProto
 	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x8c, 0x53, 0xcb, 0x6e, 0xd3, 0x40,
-	0x14, 0xd5, 0xc4, 0x49, 0xda, 0xde, 0xa4, 0x10, 0x46, 0x45, 0x8d, 0x0c, 0x42, 0xc1, 0x2b, 0x2f,
-	0x90, 0x5d, 0x5c, 0x10, 0xc8, 0x1b, 0x44, 0x53, 0xd3, 0x0a, 0x05, 0x51, 0x39, 0xd9, 0x57, 0x7e,
-	0x0c, 0xf1, 0x88, 0xc1, 0x63, 0x8d, 0xa7, 0x95, 0xfc, 0x91, 0xfc, 0x00, 0x4b, 0x3e, 0x20, 0x7f,
-	0x50, 0x09, 0x8d, 0x1f, 0x89, 0x91, 0xbb, 0xc8, 0xce, 0xe7, 0xcc, 0x39, 0x67, 0xee, 0xbd, 0x73,
-	0x0d, 0xa3, 0x84, 0x30, 0xc6, 0xad, 0x4c, 0x70, 0xc9, 0xf1, 0x61, 0x09, 0x6e, 0xb3, 0x50, 0x87,
-	0x2c, 0x5c, 0xd7, 0xac, 0xf1, 0x0a, 0x86, 0x4b, 0x29, 0x68, 0xba, 0xc6, 0x27, 0x30, 0xb8, 0x0f,
-	0xd8, 0x1d, 0x99, 0xa2, 0x19, 0x32, 0x8f, 0xfc, 0x0a, 0x18, 0x3e, 0xc0, 0x52, 0x06, 0x92, 0x46,
-	0x5f, 0x28, 0x23, 0xf8, 0x35, 0x8c, 0x23, 0x9e, 0x4a, 0x92, 0xca, 0x5b, 0x59, 0x64, 0x8d, 0x74,
-	0x54, 0x73, 0xab, 0x22, 0xfb, 0x4f, 0x12, 0xf2, 0xb8, 0x98, 0xf6, 0x66, 0xc8, 0x1c, 0x6f, 0x25,
-	0x17, 0x3c, 0x2e, 0x8c, 0xdf, 0x08, 0x0e, 0xbe, 0x91, 0x3c, 0x0f, 0xd6, 0xe4, 0xf1, 0x5b, 0x15,
-	0x1b, 0x08, 0x11, 0x28, 0xb7, 0x66, 0x0e, 0xfc, 0x0a, 0x60, 0x1b, 0xfa, 0x31, 0x8d, 0xe4, 0x54,
-	0x9b, 0x69, 0xe6, 0xc8, 0x79, 0x61, 0x35, 0x0d, 0x59, 0x75, 0x98, 0x75, 0x49, 0x23, 0xe9, 0xa5,
-	0x52, 0x14, 0x7e, 0x29, 0xc4, 0x6f, 0xe0, 0x30, 0xbf, 0x0b, 0x7f, 0x50, 0x46, 0xe2, 0x69, 0x7f,
-	0x86, 0xcc, 0x91, 0x33, 0xd9, 0x99, 0xaa, 0xb6, 0xfd, 0xad, 0x42, 0xff, 0x00, 0x47, 0xdb, 0x00,
-	0x3c, 0x01, 0xed, 0x27, 0x29, 0xea, 0xaa, 0xd4, 0xe7, 0xae, 0xd2, 0x5e, 0xab, 0x52, 0xb7, 0xf7,
-	0x11, 0x39, 0x1b, 0x0d, 0xc6, 0xd7, 0x2a, 0x76, 0x49, 0xc4, 0x3d, 0x8d, 0x08, 0x66, 0x30, 0x28,
-	0x31, 0xee, 0x5c, 0xa7, 0x77, 0x18, 0xe3, 0xd3, 0x9f, 0xcd, 0xc3, 0xc2, 0x85, 0x63, 0xbb, 0x3c,
-	0xb0, 0xdd, 0x32, 0x57, 0x1f, 0x56, 0xd0, 0x99, 0xc0, 0xf0, 0xd2, 0x5b, 0x78, 0x2b, 0x0f, 0x37,
-	0xcc, 0x53, 0x18, 0xdc, 0x7c, 0x5e, 0xcd, 0xaf, 0x1b, 0x02, 0x7f, 0x85, 0xbe, 0x17, 0x25, 0x1c,
-	0x3f, 0xeb, 0x0c, 0x44, 0xef, 0x52, 0xc6, 0x4b, 0x75, 0xdd, 0x29, 0x3c, 0xb7, 0x49, 0x94, 0x70,
-	0xdb, 0x6d, 0xba, 0xb7, 0xaa, 0xc1, 0x33, 0xb5, 0x0e, 0xea, 0xb9, 0x1f, 0x29, 0xfd, 0xa4, 0xcd,
-	0x34, 0x2b, 0x61, 0xb8, 0x2a, 0xef, 0xbd, 0x73, 0x0e, 0xda, 0x95, 0xb7, 0xc2, 0x4f, 0xec, 0xbc,
-	0x3c, 0x6a, 0xda, 0x38, 0x76, 0xdb, 0xfb, 0x62, 0xec, 0xa0, 0xda, 0x0d, 0xfc, 0x0e, 0xc6, 0x6a,
-	0x64, 0x44, 0x2c, 0xa5, 0x20, 0xc1, 0xaf, 0x7d, 0xc6, 0x75, 0x86, 0x94, 0x6b, 0xce, 0x28, 0x49,
-	0xe5, 0xfe, 0x2e, 0x13, 0xe1, 0xb7, 0x70, 0x30, 0x4f, 0x82, 0x34, 0x25, 0x6c, 0x3f, 0xc3, 0x19,
-	0xd2, 0x4f, 0xff, 0x6e, 0x1e, 0x16, 0x18, 0x26, 0x37, 0x17, 0x57, 0xdf, 0xdb, 0xef, 0x1b, 0x0e,
-	0xcb, 0x7f, 0xe7, 0xfc, 0x5f, 0x00, 0x00, 0x00, 0xff, 0xff, 0x86, 0x43, 0x54, 0xaf, 0x60, 0x03,
-	0x00, 0x00,
+	0x14, 0xd5, 0xc4, 0x49, 0xda, 0xde, 0xa4, 0x10, 0x46, 0x45, 0x44, 0x06, 0x21, 0xe3, 0x95, 0x17,
+	0xc8, 0x2e, 0x2e, 0x08, 0xe4, 0x0d, 0x82, 0xd4, 0x50, 0xa1, 0x22, 0x21, 0xdb, 0xfb, 0xca, 0x8f,
+	0x21, 0x1e, 0x31, 0x78, 0xac, 0xf1, 0xb4, 0x92, 0x3f, 0x92, 0x25, 0x1b, 0x3e, 0x82, 0x3f, 0x40,
+	0x42, 0xe3, 0x47, 0x92, 0xca, 0x59, 0x64, 0x97, 0x73, 0xe6, 0x9c, 0x73, 0x1f, 0xb9, 0x86, 0x59,
+	0x4e, 0x18, 0xe3, 0x76, 0x29, 0xb8, 0xe4, 0xf8, 0xb8, 0x01, 0x37, 0x65, 0xa2, 0x43, 0x99, 0xac,
+	0x3b, 0xd6, 0x7c, 0x0e, 0xd3, 0x50, 0x0a, 0x5a, 0xac, 0xf1, 0x19, 0x4c, 0xee, 0x62, 0x76, 0x4b,
+	0x96, 0xc8, 0x40, 0xd6, 0x49, 0xd0, 0x02, 0x33, 0x00, 0x08, 0x65, 0x2c, 0x69, 0xfa, 0x89, 0x32,
+	0x82, 0x5f, 0xc0, 0x3c, 0xe5, 0x85, 0x24, 0x85, 0xbc, 0x91, 0x75, 0xd9, 0x4b, 0x67, 0x1d, 0x17,
+	0xd5, 0xe5, 0x3d, 0x49, 0xc2, 0xb3, 0x7a, 0x39, 0x32, 0x90, 0x35, 0xdf, 0x48, 0x3e, 0xf2, 0xac,
+	0x36, 0x7f, 0x21, 0x38, 0xfa, 0x4a, 0xaa, 0x2a, 0x5e, 0x93, 0xfd, 0x55, 0x15, 0x1b, 0x0b, 0x11,
+	0x2b, 0xb7, 0x66, 0x4d, 0x82, 0x16, 0x60, 0x07, 0xc6, 0x19, 0x4d, 0xe5, 0x52, 0x33, 0x34, 0x6b,
+	0xe6, 0x3e, 0xb5, 0xfb, 0x81, 0xec, 0x2e, 0xcc, 0xbe, 0xa4, 0xa9, 0xf4, 0x0b, 0x29, 0xea, 0xa0,
+	0x11, 0xe2, 0x97, 0x70, 0x5c, 0xdd, 0x26, 0xdf, 0x29, 0x23, 0xd9, 0x72, 0x6c, 0x20, 0x6b, 0xe6,
+	0x2e, 0xb6, 0xa6, 0x76, 0xec, 0x60, 0xa3, 0xd0, 0xdf, 0xc2, 0xc9, 0x26, 0x00, 0x2f, 0x40, 0xfb,
+	0x41, 0xea, 0xae, 0x2b, 0xf5, 0x73, 0xdb, 0xe9, 0x68, 0xa7, 0x53, 0x6f, 0xf4, 0x0e, 0xb9, 0xbf,
+	0x35, 0x98, 0x5f, 0xa9, 0xd8, 0x90, 0x88, 0x3b, 0x9a, 0x12, 0xcc, 0x60, 0xd2, 0x60, 0x3c, 0x28,
+	0xa7, 0x0f, 0x18, 0xf3, 0xfd, 0x9f, 0xbf, 0xff, 0xae, 0x3d, 0x38, 0x75, 0x9a, 0x07, 0xc7, 0x6b,
+	0x72, 0xf5, 0x69, 0x0b, 0xdd, 0x05, 0x4c, 0x2f, 0xfd, 0x6b, 0x3f, 0xf2, 0x71, 0xcf, 0x3c, 0x84,
+	0xc9, 0xb7, 0x0f, 0xd1, 0xea, 0xaa, 0x27, 0xf0, 0x17, 0x18, 0xfb, 0x69, 0xce, 0xf1, 0xa3, 0xc1,
+	0x42, 0xf4, 0x21, 0x65, 0x3e, 0x53, 0xe5, 0x9e, 0xc0, 0x63, 0x87, 0xa4, 0x39, 0x77, 0xbc, 0x7e,
+	0x7a, 0xbb, 0x5d, 0x3c, 0x53, 0xe7, 0xa0, 0xfe, 0xee, 0x3d, 0xad, 0x9f, 0xed, 0x32, 0xfd, 0x49,
+	0x98, 0x9e, 0xca, 0x7b, 0xe3, 0x5e, 0x80, 0xf6, 0xd9, 0x8f, 0xf0, 0x03, 0xa7, 0x6a, 0x9e, 0xfa,
+	0x31, 0x4e, 0xbd, 0xdd, 0x7b, 0x31, 0xb7, 0x50, 0xdd, 0x06, 0x7e, 0x0d, 0x73, 0xb5, 0x32, 0x22,
+	0x42, 0x29, 0x48, 0xfc, 0xf3, 0x90, 0x75, 0x9d, 0x23, 0xe5, 0x5a, 0x31, 0x4a, 0x0a, 0x79, 0xb8,
+	0xcb, 0x42, 0xf8, 0x15, 0x1c, 0xad, 0xf2, 0xb8, 0x28, 0x08, 0x3b, 0xcc, 0x70, 0x8e, 0x92, 0x69,
+	0xf3, 0x89, 0x5c, 0xfc, 0x0f, 0x00, 0x00, 0xff, 0xff, 0x92, 0xb1, 0x61, 0x7f, 0x47, 0x03, 0x00,
+	0x00,
 }
