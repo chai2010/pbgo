@@ -499,7 +499,7 @@ func {{.ServiceName}}Handler(svc {{.ServiceName}}Interface) {{httpPkg}}.Handler 
 
 func {{.ServiceName}}GrpcHandler(
 	ctx {{contextPkg}}.Context, svc {{.ServiceName}}GrpcInterface,
-	annotateContext func(ctx {{contextPkg}}.Context, req *{{httpPkg}}.Request) ({{contextPkg}}.Context, error),
+	fnAnnotateContext func(ctx {{contextPkg}}.Context, req *{{httpPkg}}.Request) ({{contextPkg}}.Context, error),
 ) {{httpPkg}}.Handler {
 	var router = {{httprouterPkg}}.New()
 
@@ -557,9 +557,9 @@ func {{.ServiceName}}GrpcHandler(
 						}
 					}
 
-					if annotateContext != nil {
+					if fnAnnotateContext != nil {
 						var err error
-						ctx, err = annotateContext(ctx, r)
+						ctx, err = fnAnnotateContext(ctx, r)
 						if err != nil {
 							{{httpPkg}}.Error(w, err.Error(), {{httpPkg}}.StatusBadRequest)
 							return
