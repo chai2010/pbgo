@@ -761,7 +761,7 @@ func HelloServiceHandler(svc HelloServiceInterface) net_http.Handler {
 
 func HelloServiceGrpcHandler(
 	ctx context.Context, svc HelloServiceGrpcInterface,
-	annotateContext func(ctx context.Context, req *net_http.Request) (context.Context, error),
+	fnAnnotateContext func(ctx context.Context, req *net_http.Request) (context.Context, error),
 ) net_http.Handler {
 	var router = github_com_julienschmidt_httprouter.New()
 
@@ -788,9 +788,9 @@ func HelloServiceGrpcHandler(
 				}
 			}
 
-			if annotateContext != nil {
+			if fnAnnotateContext != nil {
 				var err error
-				ctx, err = annotateContext(ctx, r)
+				ctx, err = fnAnnotateContext(ctx, r)
 				if err != nil {
 					net_http.Error(w, err.Error(), net_http.StatusBadRequest)
 					return
@@ -856,9 +856,9 @@ func HelloServiceGrpcHandler(
 				}
 			}
 
-			if annotateContext != nil {
+			if fnAnnotateContext != nil {
 				var err error
-				ctx, err = annotateContext(ctx, r)
+				ctx, err = fnAnnotateContext(ctx, r)
 				if err != nil {
 					net_http.Error(w, err.Error(), net_http.StatusBadRequest)
 					return
@@ -920,9 +920,9 @@ func HelloServiceGrpcHandler(
 				}
 			}
 
-			if annotateContext != nil {
+			if fnAnnotateContext != nil {
 				var err error
-				ctx, err = annotateContext(ctx, r)
+				ctx, err = fnAnnotateContext(ctx, r)
 				if err != nil {
 					net_http.Error(w, err.Error(), net_http.StatusBadRequest)
 					return
@@ -984,9 +984,9 @@ func HelloServiceGrpcHandler(
 				}
 			}
 
-			if annotateContext != nil {
+			if fnAnnotateContext != nil {
 				var err error
-				ctx, err = annotateContext(ctx, r)
+				ctx, err = fnAnnotateContext(ctx, r)
 				if err != nil {
 					net_http.Error(w, err.Error(), net_http.StatusBadRequest)
 					return
@@ -1052,9 +1052,9 @@ func HelloServiceGrpcHandler(
 				}
 			}
 
-			if annotateContext != nil {
+			if fnAnnotateContext != nil {
 				var err error
-				ctx, err = annotateContext(ctx, r)
+				ctx, err = fnAnnotateContext(ctx, r)
 				if err != nil {
 					net_http.Error(w, err.Error(), net_http.StatusBadRequest)
 					return
@@ -1120,9 +1120,9 @@ func HelloServiceGrpcHandler(
 				}
 			}
 
-			if annotateContext != nil {
+			if fnAnnotateContext != nil {
 				var err error
-				ctx, err = annotateContext(ctx, r)
+				ctx, err = fnAnnotateContext(ctx, r)
 				if err != nil {
 					net_http.Error(w, err.Error(), net_http.StatusBadRequest)
 					return
