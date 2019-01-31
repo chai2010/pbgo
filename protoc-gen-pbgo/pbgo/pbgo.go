@@ -84,15 +84,20 @@ func (p *pbgoPlugin) Generate(file *generator.FileDescriptor) {
 }
 
 type ServiceSpec struct {
-	ServiceName string
-	MethodList  []ServiceMethodSpec
+	ServiceName    string
+	ServiceRawName string
+
+	MethodList []ServiceMethodSpec
 }
 
 type ServiceMethodSpec struct {
-	MethodName     string
+	MethodName    string
+	MethodRawName string
+
 	InputTypeName  string
 	OutputTypeName string
-	RestAPIs       []ServiceRestMethodSpec
+
+	RestAPIs []ServiceRestMethodSpec
 }
 
 type ServiceRestMethodSpec struct {
@@ -165,7 +170,8 @@ func (p *pbgoPlugin) genServiceCode(svc *descriptor.ServiceDescriptorProto) {
 
 func (p *pbgoPlugin) buildServiceSpec(svc *descriptor.ServiceDescriptorProto) *ServiceSpec {
 	spec := &ServiceSpec{
-		ServiceName: generator.CamelCase(svc.GetName()),
+		ServiceName:    generator.CamelCase(svc.GetName()),
+		ServiceRawName: svc.GetName(),
 	}
 
 	if svcOpt := p.getServiceOption(svc); svcOpt != nil {
@@ -179,10 +185,13 @@ func (p *pbgoPlugin) buildServiceSpec(svc *descriptor.ServiceDescriptorProto) *S
 			continue
 		}
 		spec.MethodList = append(spec.MethodList, ServiceMethodSpec{
-			MethodName:     generator.CamelCase(m.GetName()),
+			MethodName:    generator.CamelCase(m.GetName()),
+			MethodRawName: m.GetName(),
+
 			InputTypeName:  p.TypeName(p.ObjectNamed(m.GetInputType())),
 			OutputTypeName: p.TypeName(p.ObjectNamed(m.GetOutputType())),
-			RestAPIs:       p.buildRestMethodSpec(m),
+
+			RestAPIs: p.buildRestMethodSpec(m),
 		})
 	}
 
@@ -559,7 +568,7 @@ func {{.ServiceName}}GrpcHandler(
 
 					if fnAnnotateContext != nil {
 						var err error
-						ctx, err = fnAnnotateContext(ctx, r, "{{$m.MethodName}}")
+						ctx, err = fnAnnotateContext(ctx, r, "{{$root.ServiceRawName}}.{{$m.MethodRawName}}")
 						if err != nil {
 							{{httpPkg}}.Error(w, err.Error(), {{httpPkg}}.StatusBadRequest)
 							return
