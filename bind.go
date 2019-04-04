@@ -13,7 +13,7 @@ import (
 )
 
 func BindQuery(r *http.Request, req proto.Message) error {
-	return PopulateQueryParameters(req, r.URL.Query())
+	return PopulateQueryParametersEx(req, r.URL.Query(), true)
 }
 
 func BindBody(r *http.Request, req proto.Message) error {

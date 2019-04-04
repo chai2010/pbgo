@@ -18,11 +18,15 @@ import (
 
 // PopulateQueryParameters populates "values" into "msg".
 func PopulateQueryParameters(msg proto.Message, values url.Values) error {
+	return PopulateQueryParametersEx(msg, values, false)
+}
+
+// PopulateQueryParametersEx populates "values" into "msg".
+func PopulateQueryParametersEx(msg proto.Message, values url.Values, ignoreUnknownParam bool) error {
+	var firstErr error
 	for key, values := range values {
-		re, err := regexp.Compile("^(.*)\\[(.*)\\]$")
-		if err != nil {
-			return err
-		}
+		var re = regexp.MustCompile("^(.*)\\[(.*)\\]$")
+
 		match := re.FindStringSubmatch(key)
 		if len(match) == 3 {
 			key = match[1]
@@ -30,8 +34,16 @@ func PopulateQueryParameters(msg proto.Message, values url.Values) error {
 		}
 		fieldPath := strings.Split(key, ".")
 		if err := populateFieldValueFromPath(msg, fieldPath, values); err != nil {
-			return err
+			if firstErr == nil {
+				firstErr = err
+			}
+			if !ignoreUnknownParam {
+				return err
+			}
 		}
+	}
+	if firstErr != nil {
+		return firstErr
 	}
 	return nil
 }
