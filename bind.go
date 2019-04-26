@@ -16,6 +16,11 @@ func BindQuery(r *http.Request, req proto.Message) error {
 	return PopulateQueryParametersEx(req, r.URL.Query(), true)
 }
 
+func BindForm(r *http.Request, req proto.Message) error {
+	r.ParseForm()
+	return PopulateQueryParametersEx(req, r.Form, true)
+}
+
 func BindBody(r *http.Request, req proto.Message) error {
 	err := json.NewDecoder(r.Body).Decode(req)
 	if err != nil && err != io.EOF {
