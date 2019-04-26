@@ -1,0 +1,16 @@
+// Copyright 2018 <chaishushan{AT}gmail.com>. All rights reserved.
+// Use of this source code is governed by a Apache
+// license that can be found in the LICENSE file.
+
+syntax = "proto3";
+
+package form_pb;
+
+message Comment {
+	string user = 1;
+	string email = 2;
+	string url = 3;
+	string text = 4;
+	string next = 5; // redirect
+}
+

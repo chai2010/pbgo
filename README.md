@@ -239,6 +239,70 @@ $ curl localhost:8080/static/gopher.png
 $ curl localhost:8080/static/hello.txt
 ```
 
+## Form Example
+
+Create [example/form_pb/comment.proto](example/form_pb/comment.proto):
+
+```proto
+syntax = "proto3";
+package form_pb;
+
+message Comment {
+	string user = 1;
+	string email = 2;
+	string url = 3;
+	string text = 4;
+	string next = 5; // redirect
+}
+```
+
+generate proto code:
+
+```
+$ protoc -I=. --go_out=. comment.proto
+```
+
+create web server:
+
+```go
+package main
+
+import (
+	"github.com/chai2010/pbgo"
+	"github.com/chai2010/pbgo/examples/form_pb"
+	"github.com/julienschmidt/httprouter"
+)
+
+func main() {
+	router := httprouter.New()
+
+	// curl -d "user=chai&email=11@qq.com&text=hello&next=http://github.com" localhost:8080/api/comment-form
+	router.POST("/api/comment-form", func(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
+		var form form_pb.Comment
+		if err := pbgo.BindForm(r, &form); err != nil {
+			http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
+			log.Println(err)
+			return
+		}
+
+		s, _ := json.Marshal(form)
+		fmt.Fprintln(w, string(s))
+
+		if form.Next != "" {
+			http.Redirect(w, r, form.Next, http.StatusFound)
+			return
+		}
+	})
+
+	log.Fatal(http.ListenAndServe(":8080", router))
+}
+```
+
+```
+$ curl -d "user=chai&email=11@qq.com&text=hello&next=http://github.com" localhost:8080/api/comment-form
+{"user":"chai","email":"11@qq.com","text":"hello","next":"http://github.com"}
+```
+
 ## gRPC & Rest Example
 
 See https://github.com/chai2010/pbgo-grpc

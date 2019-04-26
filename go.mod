@@ -5,6 +5,6 @@
 module github.com/chai2010/pbgo
 
 require (
-	github.com/golang/protobuf v1.2.0
+	github.com/golang/protobuf v1.3.1
 	github.com/julienschmidt/httprouter v1.2.0
 )
