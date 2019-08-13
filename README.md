@@ -35,7 +35,7 @@ service HelloService {
 generate rpc code:
 
 ```
-$ protoc -I=. -I=$(GOPATH)/src --pbgo_out=. hello.proto
+$ protoc -I=. -I=$GOPATH/src --pbgo_out=. hello.proto
 ```
 
 use generate code:
@@ -163,7 +163,7 @@ service HelloService {
 generate rpc/rest code:
 
 ```
-$ protoc -I=. -I=$(GOPATH)/src --pbgo_out=. hello.proto
+$ protoc -I=. -I=$GOPATH/src --pbgo_out=. hello.proto
 ```
 
 use generate code:
@@ -223,7 +223,7 @@ func main() {
 ```
 $ curl localhost:8080/hello/gopher
 {"value":"hello:gopher"}
-$ curl localhost:8080/hello/gopher?value=vgo
+$ curl "localhost:8080/hello/gopher?value=vgo"
 {"value":"hello:vgo"}
 $ curl localhost:8080/hello -X POST --data '{"value":"cgo"}'
 {"value":"hello:cgo"}
