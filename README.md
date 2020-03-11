@@ -220,6 +220,30 @@ func main() {
 }
 ```
 
+Go client:
+
+```go
+func main() {
+	var reply hello_pb.Message
+	err := pbgo.HttpDo("GET", "http://127.0.0.1:8080/echo/xx",
+		&hello_pb.Message{
+			Value: "chai2010",
+			Array: []int32{1, 2, 3},
+		},
+		&reply,
+	)
+	if err != nil {
+		println("aaa")
+		log.Fatal(err)
+	}
+
+	// {chai2010 [1 2 3] map[] value:"xx"  {} [] 0}
+	fmt.Println(reply)
+}
+```
+
+CURL client:
+
 ```
 $ curl localhost:8080/hello/gopher
 {"value":"hello:gopher"}
