@@ -263,6 +263,42 @@ $ curl localhost:8080/static/gopher.png
 $ curl localhost:8080/static/hello.txt
 ```
 
+## Rest Client
+
+https://github.com/chubin/wttr.in
+
+```
+$ curl http://wttr.in/wuhan?format=j1
+$ curl http://wttr.in/武汉?format=j1
+```
+
+```go
+func main() {
+	var reply struct {
+		CurrentCondition []struct {
+			FeelsLikeC       string `json:"FeelsLikeC"`
+			FeelsLikeF       string `json:"FeelsLikeF"`
+			Cloudcover       string `json:"cloudcover"`
+			Humidity         string `json:"humidity"`
+			LocalObsDateTime string `json:"localObsDateTime"`
+			Observation_time string `json:"observation_time"`
+		} `json:"current_condition"`
+	}
+
+	err := pbgo.HttpGet("http://wttr.in/wuhan?format=j1", nil, &reply)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	json, err := json.MarshalIndent(reply, "", "  ")
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	fmt.Println(string(json))
+}
+```
+
 ## Form Example
 
 Create [example/form_pb/comment.proto](example/form_pb/comment.proto):
