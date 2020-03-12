@@ -9,11 +9,18 @@ import (
 	"encoding/json"
 	"io/ioutil"
 	"net/http"
-
-	"github.com/golang/protobuf/proto"
+	"net/url"
 )
 
-func HttpDo(method, urlpath string, input, output proto.Message) error {
+func HttpGet(urlpath string, input, output interface{}) error {
+	return httpGet(urlpath, input, output)
+}
+
+func HttpPost(urlpath string, input, output interface{}) error {
+	return httpDo("POST", urlpath, input, output)
+}
+
+func HttpDo(method, urlpath string, input, output interface{}) error {
 	if method == "GET" {
 		return httpGet(urlpath, input, output)
 	} else {
@@ -21,13 +28,24 @@ func HttpDo(method, urlpath string, input, output proto.Message) error {
 	}
 }
 
-func httpGet(urlpath string, input, output proto.Message) error {
+func httpGet(urlpath string, input, output interface{}) error {
+	url, err := url.Parse(urlpath)
+	if err != nil {
+		return err
+	}
+
 	urlValues, err := BuildUrlValues(input)
 	if err != nil {
 		return err
 	}
 
-	r, err := http.Get(urlpath + "?" + urlValues.Encode())
+	for k, v := range url.Query() {
+		urlValues[k] = v
+	}
+
+	url.RawQuery = urlValues.Encode()
+
+	r, err := http.Get(url.String())
 	if err != nil {
 		return err
 	}
@@ -46,7 +64,7 @@ func httpGet(urlpath string, input, output proto.Message) error {
 	return nil
 }
 
-func httpDo(method, urlpath string, input, output proto.Message) error {
+func httpDo(method, urlpath string, input, output interface{}) error {
 	reqBody, err := json.Marshal(input)
 	if err != nil {
 		return err

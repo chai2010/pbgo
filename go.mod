@@ -4,6 +4,8 @@
 
 module github.com/chai2010/pbgo
 
+go 1.14
+
 require (
 	github.com/golang/protobuf v1.3.1
 	github.com/julienschmidt/httprouter v1.2.0

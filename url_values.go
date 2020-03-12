@@ -8,11 +8,9 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/url"
-
-	"github.com/golang/protobuf/proto"
 )
 
-func BuildUrlValues(msg proto.Message) (m url.Values, err error) {
+func BuildUrlValues(msg interface{}) (m url.Values, err error) {
 	defer func() {
 		if x := recover(); x != nil {
 			err = fmt.Errorf("pbgo.BuildUrlValues failed: %v", x)
