@@ -34,16 +34,16 @@ func httpGet(urlpath string, input, output interface{}) error {
 		return err
 	}
 
-	urlValues, err := BuildUrlValues(input)
-	if err != nil {
-		return err
+	if input != nil {
+		urlValues, err := BuildUrlValues(input)
+		if err != nil {
+			return err
+		}
+		for k, v := range url.Query() {
+			urlValues[k] = v
+		}
+		url.RawQuery = urlValues.Encode()
 	}
-
-	for k, v := range url.Query() {
-		urlValues[k] = v
-	}
-
-	url.RawQuery = urlValues.Encode()
 
 	r, err := http.Get(url.String())
 	if err != nil {
