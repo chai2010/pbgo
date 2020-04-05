@@ -462,6 +462,88 @@ func (p *HelloServiceClient) AsyncStatic(in *String, out *StaticFile, done chan 
 	)
 }
 
+type HelloServiceHttpClient struct {
+	baseurl string
+}
+
+func NewHelloServiceHttpClient(baseurl string) *HelloServiceHttpClient {
+	return &HelloServiceHttpClient{baseurl: baseurl}
+}
+
+func (p *HelloServiceHttpClient) Hello(in *String, method ...string) (out *String, err error) {
+	if len(method) != 1 {
+		return nil, fmt.Errorf("invalid method: %v", method)
+	}
+
+	var re = regexp.MustCompile("(\\*|\\:)(\\w|\\.)+")
+	_ = re
+
+	out = new(String)
+	if method[0] == "DELETE" {
+		urlpath := p.baseurl + "/hello"
+		err = github_com_chai2010_pbgo.HttpDo(method[0], urlpath, in, out)
+		return
+	}
+	if method[0] == "GET" {
+		urlpath := p.baseurl + fmt.Sprintf("/hello/%v", in.Value)
+		err = github_com_chai2010_pbgo.HttpDo(method[0], urlpath, in, out)
+		return
+	}
+	if method[0] == "PATCH" {
+		urlpath := p.baseurl + "/hello"
+		err = github_com_chai2010_pbgo.HttpDo(method[0], urlpath, in, out)
+		return
+	}
+	if method[0] == "POST" {
+		urlpath := p.baseurl + "/hello"
+		err = github_com_chai2010_pbgo.HttpDo(method[0], urlpath, in, out)
+		return
+	}
+	return
+}
+
+func (p *HelloServiceHttpClient) Echo(in *Message, method ...string) (out *Message, err error) {
+	if len(method) == 0 {
+		method = []string{"GET"}
+	}
+	if len(method) != 1 {
+		return nil, fmt.Errorf("invalid method: %v", method)
+	}
+
+	var re = regexp.MustCompile("(\\*|\\:)(\\w|\\.)+")
+	_ = re
+
+	out = new(Message)
+	if method[0] == "GET" {
+		urlpath := p.baseurl + fmt.Sprintf("/echo/%v", in.Subfiled.Value)
+		err = github_com_chai2010_pbgo.HttpDo(method[0], urlpath, in, out)
+		return
+	}
+	return
+}
+
+func (p *HelloServiceHttpClient) Static(in *String, method ...string) (out *StaticFile, err error) {
+	if len(method) == 0 {
+		method = []string{"GET"}
+	}
+	if len(method) != 1 {
+		return nil, fmt.Errorf("invalid method: %v", method)
+	}
+
+	var re = regexp.MustCompile("(\\*|\\:)(\\w|\\.)+")
+	_ = re
+
+	out = new(StaticFile)
+	if method[0] == "GET" {
+		urlpath := p.baseurl + fmt.Sprintf("/static/%v", in.Value)
+		err = github_com_chai2010_pbgo.HttpDo(method[0], urlpath, in, out)
+		return
+	}
+	// todo: fix $rest.ContentType
+	// todo: fix $rest.ContentBody
+	return
+}
+
 func HelloServiceHandler(svc HelloServiceInterface) net_http.Handler {
 	var router = github_com_julienschmidt_httprouter.New()
 

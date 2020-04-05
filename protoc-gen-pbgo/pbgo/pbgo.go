@@ -9,8 +9,10 @@ package pbgo
 
 import (
 	"bytes"
+	"fmt"
 	"log"
 	"path"
+	"regexp"
 	"sort"
 	"strings"
 	"text/template"
@@ -156,6 +158,14 @@ func (p *pbgoPlugin) genServiceCode(svc *descriptor.ServiceDescriptorProto) {
 
 		"pbgoPkg":       func() string { return p.pbgoPkg },
 		"httprouterPkg": func() string { return p.httprouterPkg },
+
+		// /echo/:subfiled.value => "/echo/" + in.Subfiled.Value
+		"buildRestUrlCode": func(x interface{}) (string, error) {
+			if x, ok := x.(ServiceRestMethodSpec); ok {
+				return p.fn_buildRestUrlCode(x)
+			}
+			return "", fmt.Errorf("buildRestUrlCode: invalid argument")
+		},
 	}
 
 	var buf bytes.Buffer
@@ -290,6 +300,49 @@ func (p *pbgoPlugin) getServiceMethodOption(m *descriptor.MethodDescriptorProto)
 	return nil
 }
 
+// /echo/:subfiled.value => "/echo/" + in.Subfiled.Value
+func (p *pbgoPlugin) fn_buildRestUrlCode(rest ServiceRestMethodSpec) (string, error) {
+	var re = regexp.MustCompile("(\\*|\\:)(\\w|\\.)+")
+	_ = re
+
+	if !rest.HasPathParam {
+		return fmt.Sprintf("%q", rest.Url), nil
+	}
+
+	var filedPathList = re.FindAllString(rest.Url, -1)
+	if len(filedPathList) == 0 {
+		return fmt.Sprintf("%q", rest.Url), nil
+	}
+
+	var filedPathMap = make(map[string]string)
+	for _, v := range filedPathList {
+		filedPath := strings.TrimLeft(v, ":*")
+		filedPathMap[v] = func() string {
+			var ss []string
+			for _, s := range strings.Split(filedPath, ".") {
+				ss = append(ss, generator.CamelCase(s))
+			}
+			return strings.Join(ss, ".")
+		}()
+	}
+
+	var urlFormat = rest.Url
+	for _, v := range filedPathList {
+		urlFormat = strings.ReplaceAll(urlFormat, v, "%v")
+	}
+
+	// /echo/:subfiled.value
+	// fmt.Sprintf("/echo/%s", in.Subfiled.Value)
+	var buf bytes.Buffer
+	fmt.Fprintf(&buf, "fmt.Sprintf(%q", urlFormat)
+	for _, v := range filedPathList {
+		fmt.Fprintf(&buf, ", in.%s", filedPathMap[v])
+	}
+	fmt.Fprint(&buf, ")")
+
+	return buf.String(), nil
+}
+
 const tmplService = `
 {{$root := .}}
 
@@ -395,6 +448,53 @@ func (p *{{$root.ServiceName}}Client) Async{{$m.MethodName}}(in *{{$m.InputTypeN
 		in, out,
 		done,
 	)
+}
+{{end}}
+
+type {{.ServiceName}}HttpClient struct {
+	baseurl string
+}
+
+func New{{.ServiceName}}HttpClient(baseurl string) *{{.ServiceName}}HttpClient {
+	return &{{.ServiceName}}HttpClient{baseurl: baseurl}
+}
+
+{{range $_, $m := .MethodList}}
+func (p *{{$root.ServiceName}}HttpClient) {{$m.MethodName}}(in *{{$m.InputTypeName}}, method ...string) (out *{{$m.OutputTypeName}}, err error) {
+	{{- if eq (len .RestAPIs) 0}}
+		return nil, fmt.Errorf("no rest api")
+	{{else if eq (len .RestAPIs) 1}}
+		if len(method) == 0 {
+			method = []string{"{{(index .RestAPIs 0).Method}}"}
+		}
+	{{end -}}
+
+	if len(method) != 1 {
+		return nil, fmt.Errorf("invalid method: %v", method)
+	}
+
+	var re = {{regexpPkg}}.MustCompile("(\\*|\\:)(\\w|\\.)+")
+	_ = re
+
+	out = new({{$m.OutputTypeName}})
+	{{- range $_, $rest := .RestAPIs}}
+		if method[0] == "{{$rest.Method}}" {
+			{{- if $rest.HasPathParam}}
+				urlpath := p.baseurl+{{buildRestUrlCode .}}
+			{{- else}}
+				urlpath := p.baseurl+"{{$rest.Url}}"
+			{{- end}}
+			err = {{pbgoPkg}}.HttpDo(method[0], urlpath, in, out)
+			return
+		}
+		{{- if $rest.ContentType}}
+			// todo: fix $rest.ContentType
+		{{- end}}
+		{{- if $rest.ContentBody}}
+			// todo: fix $rest.ContentBody
+		{{- end}}
+	{{- end}}
+	return
 }
 {{end}}
 
