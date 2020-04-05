@@ -95,7 +95,9 @@ func init() {
 	proto.RegisterType((*Comment)(nil), "form_pb.Comment")
 }
 
-func init() { proto.RegisterFile("comment.proto", fileDescriptor_749aee09ea917828) }
+func init() {
+	proto.RegisterFile("comment.proto", fileDescriptor_749aee09ea917828)
+}
 
 var fileDescriptor_749aee09ea917828 = []byte{
 	// 125 bytes of a gzipped FileDescriptorProto

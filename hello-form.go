@@ -12,7 +12,7 @@ import (
 	"net/http"
 
 	"github.com/chai2010/pbgo"
-	"github.com/chai2010/pbgo/examples/form_pb"
+	"github.com/chai2010/pbgo/examples/form.pb"
 	"github.com/julienschmidt/httprouter"
 )
 

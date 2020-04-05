@@ -11,8 +11,12 @@ default:
 	cp ./_output/github.com/chai2010/pbgo/pbgo.pb.go .
 	go vet && go test
 
-vgo_test:
-	vgo test
+	make examples
+
+.PHONY: examples
+examples:
+	cd ./examples/form.pb && make
+	cd ./examples/hello.pb && make
 
 clean:
 	-rm *.pb.go
