@@ -10,20 +10,19 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/chai2010/pbgo"
 	"github.com/chai2010/pbgo/examples/hello.pb"
 )
 
 func main() {
-	var reply = new(hello_pb.Message)
-	err := pbgo.HttpDo("GET", "http://127.0.0.1:8080/echo/xx",
-		&hello_pb.Message{
-			Value: "chai2010",
-			Array: []int32{1, 2, 3},
-		},
-		&reply,
-	)
+	c := hello_pb.NewHelloServiceHttpClient("http://127.0.0.1:8080")
+
+	reply, err := c.Echo(&hello_pb.Message{
+		Value:    "chai2010",
+		Array:    []int32{1, 2, 3},
+		Subfiled: &hello_pb.String{Value: "xx"},
+	})
 	if err != nil {
+		println("aaa")
 		log.Fatal(err)
 	}
 

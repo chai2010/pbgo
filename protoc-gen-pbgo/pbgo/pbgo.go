@@ -333,6 +333,10 @@ func (p *pbgoPlugin) fn_buildRestUrlCode(rest ServiceRestMethodSpec) (string, er
 
 	// /echo/:subfiled.value
 	// fmt.Sprintf("/echo/%s", in.Subfiled.Value)
+	//
+	// /echo/*subfiled.value
+	// fmt.Sprintf("/echo/%s", in.Subfiled.Value)
+
 	var buf bytes.Buffer
 	fmt.Fprintf(&buf, "fmt.Sprintf(%q", urlFormat)
 	for _, v := range filedPathList {
@@ -452,11 +456,35 @@ func (p *{{$root.ServiceName}}Client) Async{{$m.MethodName}}(in *{{$m.InputTypeN
 {{end}}
 
 type {{.ServiceName}}HttpClient struct {
+	c       *{{httpPkg}}.Client
 	baseurl string
 }
 
-func New{{.ServiceName}}HttpClient(baseurl string) *{{.ServiceName}}HttpClient {
-	return &{{.ServiceName}}HttpClient{baseurl: baseurl}
+func New{{.ServiceName}}HttpClient(baseurl string, c ...*{{httpPkg}}.Client) *{{.ServiceName}}HttpClient {
+	p := &{{.ServiceName}}HttpClient{
+		c:       {{httpPkg}}.DefaultClient,
+		baseurl: baseurl,
+	}
+	if len(c) != 0 && c[0] != nil {
+		p.c = c[0]
+	}
+	return p
+}
+
+func (p *{{$root.ServiceName}}HttpClient) httpDoRequest(method, urlpath string, in interface{}) (mimeType string, content []byte, err error) {
+	req, err := {{pbgoPkg}}.NewHttpRequest(method, urlpath, in)
+	if err != nil {
+		return "", nil, err
+	}
+	resp, err := p.c.Do(req)
+	if err != nil {
+		return "", nil, err
+	}
+	defer resp.Body.Close()
+
+	mimeType = resp.Header.Get("Content-Type")
+	content, err = {{ioutilPkg}}.ReadAll(resp.Body)
+	return
 }
 
 {{range $_, $m := .MethodList}}
@@ -484,17 +512,23 @@ func (p *{{$root.ServiceName}}HttpClient) {{$m.MethodName}}(in *{{$m.InputTypeNa
 			{{- else}}
 				urlpath := p.baseurl+"{{$rest.Url}}"
 			{{- end}}
-			err = {{pbgoPkg}}.HttpDo(method[0], urlpath, in, out)
-			return
+
+			{{- if $rest.ContentBody}}
+				mimeType, contentBody, err := p.httpDoRequest(method[0], urlpath, in)
+				{{- if $rest.ContentType}}
+					out.{{$rest.ContentType}} = mimeType
+				{{- end}}
+				{{- if $rest.ContentBody}}
+					out.{{$rest.ContentBody}} = contentBody
+				{{- end}}
+			{{- else}}
+				err = {{pbgoPkg}}.HttpDo(method[0], urlpath, in, out)
+			{{- end}}
+			return out, err
 		}
-		{{- if $rest.ContentType}}
-			// todo: fix $rest.ContentType
-		{{- end}}
-		{{- if $rest.ContentBody}}
-			// todo: fix $rest.ContentBody
-		{{- end}}
 	{{- end}}
-	return
+
+	return nil, fmt.Errorf("invalid method: %v", method)
 }
 {{end}}
 

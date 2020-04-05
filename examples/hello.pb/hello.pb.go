@@ -463,11 +463,35 @@ func (p *HelloServiceClient) AsyncStatic(in *String, out *StaticFile, done chan 
 }
 
 type HelloServiceHttpClient struct {
+	c       *net_http.Client
 	baseurl string
 }
 
-func NewHelloServiceHttpClient(baseurl string) *HelloServiceHttpClient {
-	return &HelloServiceHttpClient{baseurl: baseurl}
+func NewHelloServiceHttpClient(baseurl string, c ...*net_http.Client) *HelloServiceHttpClient {
+	p := &HelloServiceHttpClient{
+		c:       net_http.DefaultClient,
+		baseurl: baseurl,
+	}
+	if len(c) != 0 && c[0] != nil {
+		p.c = c[0]
+	}
+	return p
+}
+
+func (p *HelloServiceHttpClient) httpDoRequest(method, urlpath string, in interface{}) (mimeType string, content []byte, err error) {
+	req, err := github_com_chai2010_pbgo.NewHttpRequest(method, urlpath, in)
+	if err != nil {
+		return "", nil, err
+	}
+	resp, err := p.c.Do(req)
+	if err != nil {
+		return "", nil, err
+	}
+	defer resp.Body.Close()
+
+	mimeType = resp.Header.Get("Content-Type")
+	content, err = io_ioutil.ReadAll(resp.Body)
+	return
 }
 
 func (p *HelloServiceHttpClient) Hello(in *String, method ...string) (out *String, err error) {
@@ -482,24 +506,25 @@ func (p *HelloServiceHttpClient) Hello(in *String, method ...string) (out *Strin
 	if method[0] == "DELETE" {
 		urlpath := p.baseurl + "/hello"
 		err = github_com_chai2010_pbgo.HttpDo(method[0], urlpath, in, out)
-		return
+		return out, err
 	}
 	if method[0] == "GET" {
 		urlpath := p.baseurl + fmt.Sprintf("/hello/%v", in.Value)
 		err = github_com_chai2010_pbgo.HttpDo(method[0], urlpath, in, out)
-		return
+		return out, err
 	}
 	if method[0] == "PATCH" {
 		urlpath := p.baseurl + "/hello"
 		err = github_com_chai2010_pbgo.HttpDo(method[0], urlpath, in, out)
-		return
+		return out, err
 	}
 	if method[0] == "POST" {
 		urlpath := p.baseurl + "/hello"
 		err = github_com_chai2010_pbgo.HttpDo(method[0], urlpath, in, out)
-		return
+		return out, err
 	}
-	return
+
+	return nil, fmt.Errorf("invalid method: %v", method)
 }
 
 func (p *HelloServiceHttpClient) Echo(in *Message, method ...string) (out *Message, err error) {
@@ -517,9 +542,10 @@ func (p *HelloServiceHttpClient) Echo(in *Message, method ...string) (out *Messa
 	if method[0] == "GET" {
 		urlpath := p.baseurl + fmt.Sprintf("/echo/%v", in.Subfiled.Value)
 		err = github_com_chai2010_pbgo.HttpDo(method[0], urlpath, in, out)
-		return
+		return out, err
 	}
-	return
+
+	return nil, fmt.Errorf("invalid method: %v", method)
 }
 
 func (p *HelloServiceHttpClient) Static(in *String, method ...string) (out *StaticFile, err error) {
@@ -536,12 +562,13 @@ func (p *HelloServiceHttpClient) Static(in *String, method ...string) (out *Stat
 	out = new(StaticFile)
 	if method[0] == "GET" {
 		urlpath := p.baseurl + fmt.Sprintf("/static/%v", in.Value)
-		err = github_com_chai2010_pbgo.HttpDo(method[0], urlpath, in, out)
-		return
+		mimeType, contentBody, err := p.httpDoRequest(method[0], urlpath, in)
+		out.ContentType = mimeType
+		out.ContentBody = contentBody
+		return out, err
 	}
-	// todo: fix $rest.ContentType
-	// todo: fix $rest.ContentBody
-	return
+
+	return nil, fmt.Errorf("invalid method: %v", method)
 }
 
 func HelloServiceHandler(svc HelloServiceInterface) net_http.Handler {
