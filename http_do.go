@@ -7,6 +7,7 @@ package pbgo
 import (
 	"bytes"
 	"encoding/json"
+	"io"
 	"io/ioutil"
 	"net/http"
 	"net/url"
@@ -26,6 +27,41 @@ func HttpDo(method, urlpath string, input, output interface{}) error {
 	} else {
 		return httpDo(method, urlpath, input, output)
 	}
+}
+
+func NewHttpRequest(method, urlpath string, input interface{}) (*http.Request, error) {
+	url, err := url.Parse(urlpath)
+	if err != nil {
+		return nil, err
+	}
+
+	var body io.Reader
+	if method == "GET" {
+		if input != nil {
+			urlValues, err := BuildUrlValues(input)
+			if err != nil {
+				return nil, err
+			}
+			for k, v := range url.Query() {
+				urlValues[k] = v
+			}
+			url.RawQuery = urlValues.Encode()
+		}
+	} else {
+		reqBody, err := json.Marshal(input)
+		if err != nil {
+			return nil, err
+		}
+		body = bytes.NewReader(reqBody)
+	}
+
+	req, err := http.NewRequest(method, url.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Set("Content-Type", "application/json")
+	return req, nil
 }
 
 func httpGet(urlpath string, input, output interface{}) error {
