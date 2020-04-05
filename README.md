@@ -10,6 +10,13 @@
 [![Go Report Card](https://goreportcard.com/badge/github.com/chai2010/pbgo)](https://goreportcard.com/report/github.com/chai2010/pbgo)
 [![GoDoc](https://godoc.org/github.com/chai2010/pbgo?status.svg)](https://godoc.org/github.com/chai2010/pbgo)
 
+## Features
+
+- protoc plugin generate code
+- define rpc api with Protobuf, generate stub code, work with standard `net/rpc` framework
+- define rest api with Protobuf, and generate service and client code
+- work with grpc framework
+
 ## Install
 
 1. install `protoc` at first: http://github.com/google/protobuf/releases

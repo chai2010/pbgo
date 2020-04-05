@@ -22,7 +22,6 @@ func main() {
 		Subfiled: &hello_pb.String{Value: "xx"},
 	})
 	if err != nil {
-		println("aaa")
 		log.Fatal(err)
 	}
 
