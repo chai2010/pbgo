@@ -328,7 +328,7 @@ func (p *pbgoPlugin) fn_buildRestUrlCode(rest ServiceRestMethodSpec) (string, er
 
 	var urlFormat = rest.Url
 	for _, v := range filedPathList {
-		urlFormat = strings.ReplaceAll(urlFormat, v, "%v")
+		urlFormat = strings.Replace(urlFormat, v, "%v", -1)
 	}
 
 	// /echo/:subfiled.value
