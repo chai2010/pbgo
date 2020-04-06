@@ -7,6 +7,7 @@ package pbgo
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"io"
 	"io/ioutil"
 	"net/http"
@@ -94,7 +95,7 @@ func httpGet(urlpath string, input, output interface{}) error {
 
 	err = json.Unmarshal(bodyData, output)
 	if err != nil {
-		return err
+		return fmt.Errorf("json.Unmarshal failed: bodyData = %v", string(bodyData))
 	}
 
 	return nil
@@ -125,7 +126,7 @@ func httpDo(method, urlpath string, input, output interface{}) error {
 
 	err = json.Unmarshal(bodyData, output)
 	if err != nil {
-		return err
+		return fmt.Errorf("json.Unmarshal failed: bodyData = %v", string(bodyData))
 	}
 
 	return nil
