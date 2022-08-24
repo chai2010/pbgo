@@ -1,4 +1,5 @@
-- *Go语言QQ群: 102319854, 1055927514*
+- *KusonStack一站式可编程配置技术栈(Go): https://github.com/KusionStack/kusion*
+- *KCL 配置编程语言(Rust): https://github.com/KusionStack/KCLVM*
 - *凹语言(凹读音“Wa”)(The Wa Programming Language): https://github.com/wa-lang/wa*
 
 ----
